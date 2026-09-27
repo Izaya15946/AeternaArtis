@@ -1,0 +1,732 @@
+/* ==========================================================================
+   1. RESET & BASE STYLES
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #a0a0b0;
+    background-color: #0f0f11;
+    scroll-behavior: smooth;
+}
+
+/* ==========================================================================
+   2. NAVIGATION BAR & FLOATING MENU STACK
+   ========================================================================== */
+.navbar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;  
+    justify-content: space-between;
+    align-items: center;
+    background-color: #141417;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); 
+    border-bottom: 1px solid #2a2a30;         
+    z-index: 9999;
+    padding: 0 20px;
+    height: 60px;
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.site-logo {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 200, 0.3));
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-icon-link {
+    color: #e1e1e6;
+    font-size: 20px;
+    text-decoration: none;
+    height: 100%;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.nav-icon-link:hover,
+.nav-icon-link.active {
+    background-color: #26262e;
+    color: #00ffc8;
+    border-bottom: 3px solid #00ffc8;
+}
+
+/* Floating Vertical Menu Bar */
+.floating-menu-stack {
+    position: fixed;
+    right: 20px;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    z-index: 10000;
+}
+
+.floating-dropdown {
+    position: relative;
+    width: 65px;
+    height: 44px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.floating-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    border: none;
+    background-color: #1a1a22;
+    color: #00ffc8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: width 0.1s ease-in-out, background-color 0.1s ease-in-out, color 0.1s ease-in-out, gap 0.1s ease-in-out;
+    gap: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.floating-btn .arrow-sub {
+    opacity: 0;
+    max-width: 0;
+    font-size: 11px;
+    transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
+}
+
+.floating-dropdown:hover .floating-btn,
+.floating-btn.active {
+    width: 65px;
+    gap: 6px;
+    background-color: #00ffc8;
+    color: #0f0f11;
+}
+
+.floating-dropdown:hover .floating-btn .arrow-sub,
+.floating-btn.active .arrow-sub {
+    opacity: 1;
+    max-width: 20px;
+}
+
+.floating-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 75px;
+    top: 0;
+    background-color: #1a1a22;
+    min-width: auto;
+    border: 1px solid #2a2a30;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.floating-dropdown:hover .floating-dropdown-content,
+.floating-dropdown-content.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+.floating-dropdown-content .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    color: #e1e1e6;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.floating-dropdown-content a.menu-item:hover {
+    background-color: #262630;
+    color: #00ffc8;
+}
+
+/* ==========================================================================
+   3. HERO HEADER
+   ========================================================================== */
+.backimg1 {
+    position: relative;
+    width: 100%;
+    height: 30vh;
+    background: linear-gradient(
+        180deg,
+        rgba(15, 15, 17, 0.4) 0%,
+        rgba(15, 15, 17, 0.8) 60%,
+        #0f0f11 100%
+    ), url("pics/GlowArts/HomeDesk.png") center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+}
+
+.header {
+    text-align: center;
+    padding: 40px 60px;
+}
+
+.header h1 {
+    color: #ffffff;
+    font-size: 42px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+}
+
+.header p {
+    color: #a0a0b0;
+    font-size: 18px;
+}
+
+/* ==========================================================================
+   4. MAIN LAYOUT & SIDEBARS
+   ========================================================================== */
+.layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1350px;
+    margin: 30px auto;
+    padding: 0 20px;
+    gap: 20px;
+}
+
+.layout2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.left-layer,
+.right-layer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.left-layer {
+    margin: 0 1vw;
+}
+
+.leftsidebar,
+.rightsidebar,
+.middlebox,
+.Account-Container,
+.container-post {
+    background-color: #1a1a1e;
+    border: 1px solid #2a2a30;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.leftsidebar,
+.rightsidebar {
+    width: 260px;
+    flex-shrink: 0;
+}
+
+.leftsidebar h3,
+.rightsidebar h3 {
+    color: #ffffff;
+    font-size: 20px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #2a2a30;
+}
+
+.leftsidebar p {
+    color: #a0a0b0;
+    font-size: 16px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.rightsidebar p {
+    display: inline-flex;
+    color: #00ffc8;
+    font-size: 13px;
+    background-color: #26262e;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin: 3px;
+}
+
+.middle-layer,
+.middle-layer1 {
+    flex: 1;
+    max-width: 780px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Sidebar Elements & Controls */
+.filter-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background-color: #26262e;
+    color: #a0a0b0;
+    border: 1px solid #2a2a30;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background-color: #00ffc8;
+    color: #0f0f11;
+    font-weight: 600;
+    border-color: #00ffc8;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Profile Elements */
+.profile-container {
+    width: 100%;
+    max-width: 1310px;
+    border: 1px solid #2a2a30;
+    border-radius: 16px;
+    padding: 24px;
+    background-color: #1a1a1e;
+}
+
+.Profile-Pic {
+    background-color: #26262e;
+    border: 1px solid #2a2a30;
+    border-radius: 50%;
+    width: 160px;
+    height: 160px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.Account-Container h3 {
+    font-size: 35px;
+    color: #00ffc8;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2a30;
+    margin-bottom: 15px;
+}
+
+.Account-Container h4 {
+    color: #ffffff;
+    font-size: 30px;
+}
+
+.Account-Container p {
+    color: #a0a0b0;
+    font-size: 25px;
+}
+
+.profile-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-menu-content {
+    display: none;
+    position: absolute;
+    top: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #141417;
+    min-width: 170px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    border: 1px solid #2a2a30;
+    border-radius: 8px;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+.profile-menu-content.show {
+    display: block;
+}
+
+.profile-menu-content a {
+    color: #e1e1e6;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.profile-menu-content a:hover {
+    background-color: #26262e;
+    color: #00ffc8;
+}
+
+/* ==========================================================================
+   5. POST CARDS & INPUTS
+   ========================================================================== */
+.create-post-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #1a1a1e;
+    border: 1px solid #2a2a30;
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.create-post-bar button,
+.create-post-bar button#openModalBtn {
+    flex: 1;
+    width: 100%;
+    height: 42px;
+    background-color: #26262e;
+    color: #a0a0b0;
+    border: 1px solid #2a2a30;
+    border-radius: 20px;
+    padding: 0 16px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.create-post-bar button:hover,
+.create-post-bar button#openModalBtn:hover {
+    background-color: #32323e;
+    border-color: #00ffc8;
+    color: #ffffff;
+}
+
+/* Post Styling */
+.container-post {
+    margin-bottom: 20px;
+}
+
+.container-post h4 {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.container-post small {
+    color: #a0a0b0;
+    font-size: 11px;
+}
+
+.container-post h1 {
+    color: #e1e1e6;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.4;
+    word-break: break-word;
+    margin: 10px 0;
+}
+
+.container-post p.post-text {
+    color: #e1e1e6;
+    font-size: 16px;
+    line-height: 1.5;
+    word-break: break-word;
+    margin: 12px 0;
+}
+
+/* Image Controls */
+.profile-pic,
+.container-post img.user-avatar,
+.middlebox img,
+.create-post-bar img.profile-pic {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+.Profile-Pic img {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+.post-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: #0f0f11;
+    border-radius: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.post-image-wrapper img,
+.container-post .post-image,
+.container-post img {
+    width: 100%;
+    max-height: 650px;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 12px;
+    display: block;
+    object-fit: contain;
+}
+
+/* ==========================================================================
+   6. COMMENT SECTION
+   ========================================================================== */
+.comment-section {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a30;
+    display: flex;
+    gap: 8px;
+}
+
+.comment-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.comment-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    flex-shrink: 0;
+}
+
+.comment-content {
+    background-color: #26262e;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #e1e1e6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    width: 100%;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #00ffc8;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.comment-box-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.comment-input,
+.comment-box-container input {
+    flex: 1;
+    background-color: #26262e;
+    border: 1px solid #2a2a30;
+    border-radius: 25px;
+    padding: 10px 16px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+}
+
+.comment-input:focus,
+.comment-box-container input:focus {
+    border-color: #00ffc8;
+}
+
+.comment-btn,
+.comment-box-container button {
+    background-color: #00ffc8;
+    color: #0f0f11;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.comment-btn:hover,
+.comment-box-container button:hover {
+    background-color: #00d6a8;
+}
+
+/* ==========================================================================
+   7. MODAL OVERLAY & FORM STYLES
+   ========================================================================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 10, 12, 0.75);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content {
+    background: #18181c;
+    border: 1px solid #2e2e38;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 255, 200, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    margin: 8vh auto;
+    color: #f0f0f5;
+}
+
+.modal-content h3 {
+    font-size: 20px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #2a2a32;
+    padding-bottom: 10px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.form-group label,
+.modal-content label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #00ffc8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.modal-content select,
+.modal-content textarea,
+.modal-content input[type="file"] {
+    width: 100%;
+    background-color: #22222a;
+    border: 1px solid #32323e;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    margin-bottom: 18px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-content select:focus,
+.modal-content textarea:focus {
+    border-color: #00ffc8;
+    box-shadow: 0 0 8px rgba(0, 255, 200, 0.25);
+}
+
+.modal-content textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.modal-content input[type="file"]::file-selector-button {
+    background: #2a2a34;
+    border: 1px solid #3a3a48;
+    color: #00ffc8;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #3a3a48;
+    color: #a0a0b0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0;
+}
+
+.btn-cancel:hover {
+    background: #262630;
+    color: #ffffff;
+}
+
+.btn-submit {
+    background: #00ffc8;
+    border: none;
+    color: #0f0f11;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 0;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+}
+
+.btn-submit:hover {
+    background: #00e6b4;
+}

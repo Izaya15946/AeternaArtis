@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>| Arts:Gallery |</title>
+    <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="AccountProfile.css">
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBIefhfw87VtaK_BtSHli0OPAksm1wqQ1s",
+        authDomain: "aeterna-artis-618a2.firebaseapp.com",
+        projectId: "aeterna-artis-618a2",
+        storageBucket: "aeterna-artis-618a2.firebasestorage.app",
+        messagingSenderId: "793700191025",
+        appId: "1:793700191025:web:4272ade31590f5d0aebe10"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.auth = getAuth(app);
+      window.db = getFirestore(app);
+      window.storage = getStorage(app);
+    </script>
+
+    <!-- Added type="module" to external scripts -->
+    <script type="module" src="Profile.js"></script>
+    <script type="module" src="posts.js"></script>
+</head>
+<body>
+
+ <!-- NAVIGATION BAR -->
+<div class="navbar">
+    <a href="Websitehtml.html" class="logo-wrapper">
+        <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
+    </a>
+
+    <!-- Middle/Right Nav Links using Icons -->
+    <div class="nav-links">
+        <a href="Websitehtml.html" class="nav-icon-link active" title="Home">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        <a href="Home.html" class="nav-icon-link" title="Explore">
+            <i class="fa-solid fa-compass"></i>
+        </a>
+        <a href="AccountProfile.html" class="nav-icon-link" title="Profile">
+            <i class="fa-solid fa-circle-user"></i>
+        </a>
+    </div>
+</div>
+
+<!-- FLOATING ACTION / MENU STACK (Outside Navbar) -->
+<div class="floating-menu-stack">
+    <!-- Notification Button with Dropdown -->
+    <div class="floating-dropdown">
+        <button class="floating-btn" id="notifyBtn" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+        </button>
+        <div class="floating-dropdown-content">
+            <div class="menu-item"><i class="fa-solid fa-bell"></i> No new notifications</div>
+        </div>
+    </div>
+
+    <!-- Messages Button with Dropdown -->
+    <div class="floating-dropdown">
+        <button class="floating-btn" id="msgBtn" title="Messages">
+            <i class="fa-solid fa-comment-dots"></i>
+            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+        </button>
+        <div class="floating-dropdown-content">
+            <div class="menu-item"><i class="fa-solid fa-envelope"></i> No new messages</div>
+        </div>
+    </div>
+
+    <!-- Gear/Settings Button with Logout Menu -->
+    <div class="floating-dropdown">
+        <button class="floating-btn" id="gearBtn" title="Settings & Account">
+            <i class="fa-solid fa-gear"></i>
+            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+        </button>
+        <div class="floating-dropdown-content">
+            <a href="Profile.html" class="menu-item"><i class="fa-solid fa-code"></i>Dev</a>
+            <a href="Gallery.html" class="menu-item"><i class="fa fa-book"></i>Website's Gallery</a>
+            <a href="#" id="navLogout" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+</div>
+
+    <!-- TOP SECTION: PROFILE HEADER -->
+    <div class="layout">
+        <div class="profile-container">
+            <div style="display: flex; gap: 40px; align-items: center;"> 
+                
+                <div style="width: 200px; text-align: center;">
+    <div class="profile-dropdown-wrapper" id="profileDropdownWrapper" style="position: relative; cursor: pointer; display: inline-block;">
+        <div class="Profile-Pic">
+            <img class="profile-pic" id="profileImg" src="Profile-Placeholder.png" alt="Profile">
+        </div>
+        
+        <!-- Dropdown Menu (Hidden by default, toggled via JS) -->
+        <div id="profileMenu" class="profile-menu-content">
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <a href="#" id="uploadBtn"> Upload Photo</a>
+            <a href="#" id="viewProfileBtn"> View Profile Photo</a>
+        </div>
+    </div>
+</div>
+                <div class="Account-Container" style="flex: 1; border: none; padding: 0;">
+                    <h3>Profile Details</h3>
+                    <div class="layout2">
+                        <div style="width:20%;"><h4>Name:</h4></div>
+                        <div style="width:80%;"><p><span class="prof-name">Loading...</span></p></div>
+                    </div>
+                    <div class="layout2">
+                        <div style="width:20%;"><h4>Country:</h4></div>
+                        <div style="width:80%;"><p><span id="prof-country">Loading...</span></p></div>   
+                    </div>
+                    <div class="layout2">
+                        <div style="width:20%;"><h4>Email:</h4></div>
+                        <div style="width:80%;"><p><span id="prof-email">Loading...</span></p></div>
+                    </div>
+                    <div class="layout2">
+                        <div style="width:20%;"><h4>Birthday:</h4></div>
+                        <div style="width:80%;"><p><span id="prof-birthday">Loading...</span></p></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN FEED & SIDEBARS LAYOUT -->
+    <div class="layout" style="margin-top: 20px;">
+        
+        <!-- LEFT SIDEBAR LAYER -->
+        <div class="left-layer">
+            <div class="leftsidebar">
+                <h3>Quick Navigation</h3>
+                <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa fa-home"></i> Feed</p></a>
+                <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa-solid fa-fire"></i> Trending</p></a>
+                <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa fa-bookmark"></i> Dashboard</p></a>
+                <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa-solid fa-gear"></i> Settings</p></a>
+            </div>
+            <div class="leftsidebar">
+                <h3>Post Type</h3>
+                <button class="filter-btn active" onclick="filterPosts('postType', 'All')">All Types</button>
+                <button class="filter-btn" onclick="filterPosts('postType', 'Showcasing')">Showcasing</button>
+                <button class="filter-btn" onclick="filterPosts('postType', 'Selling')">Selling</button>
+            </div>
+        </div>
+
+        <!-- MIDDLE FEED LAYER -->
+        <div class="middle-layer1">
+            
+                <div class="create-post-bar" style="display: flex; gap: 12px; align-items: center;">
+                    <img class="profile-pic" src="Profile-Placeholder.png" alt="Profile" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <button id="openModalBtn" type="button">Share your thoughts or artworks...</button>
+                </div>
+
+
+            <!-- Post Modal Window -->
+                    <div id="postModal" class="modal">
+                    <div class="modal-content">
+                        <h3>Create New Post</h3>
+                        
+
+                        <!-- Description -->
+                        <label for="modalContent">Description</label>
+                        <textarea id="modalContent" placeholder="Describe your artwork or thoughts..."></textarea>
+                        <!-- Horizontal Dropdowns -->
+                        <div class="form-row">
+                        <div class="form-group">
+                            <label for="modalCategory">Category</label>
+                            <select id="modalCategory">
+                            <option value="Digital Art">Digital Art</option>
+                            <option value="Traditional Art">Traditional Art</option>
+                            <option value="3D Model">3D Model</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modalPostType">Post Type</label>
+                            <select id="modalPostType">
+                            <option value="Showcasing">Showcasing</option>
+                            <option value="Selling">Selling</option>
+                            </select>
+                        </div>
+                        </div>
+
+                        <!-- File Upload and Live Preview -->
+                        <div id="imagePreviewContainer" style="display:none; margin-bottom:15px; text-align:center;">
+                        <img id="imagePreview" src="" alt="Preview" style="width:100%; height:auto; border-radius:8px; border:1px solid #32323e;">
+                        </div>
+                        <label for="modalImageInput">Upload Artwork</label>
+                        <input type="file" id="modalImageInput" accept="image/*">
+
+
+                        <!-- Actions -->
+                        <div class="modal-actions">
+                        <button id="closeModalBtn" type="button" class="btn-cancel">Cancel</button>
+                        <button id="submitModalPostBtn" type="button" class="btn-submit">Post</button>
+                        </div>
+                    </div>
+                    
+            
+                </div>
+
+            <!-- FEED CONTAINER -->
+            <div id="feedContainer"></div>
+        </div>
+
+        <!-- RIGHT SIDEBAR LAYER -->
+        <div class="right-layer">
+            <div class="rightsidebar">
+                <h3>Popular Tags</h3>
+                <div class="tags-container">
+                    <span class="filter-btn" style="display:inline-block; width:auto;">#Traditional</span>
+                    <span class="filter-btn" style="display:inline-block; width:auto;">#DigitalArts</span>
+                </div>
+            </div>
+            <div class="rightsidebar">
+                <h3>Categories</h3>
+                <button class="filter-btn active" onclick="filterPosts('category', 'All')">All Categories</button>
+                <button class="filter-btn" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
+                <button class="filter-btn" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
+                <button class="filter-btn" onclick="filterPosts('category', '3D Model')">3D Model</button>
+            </div>
+        </div>
+
+    </div>
+<div id="imageLightbox" class="modal" style="display: none; background-color: rgba(0, 0, 0, 0.9); cursor: pointer; z-index: 20000;" onclick="closeLightbox()">
+    <span style="position: absolute; top: 20px; right: 35px; color: #fff; font-size: 40px; font-weight: bold;">&times;</span>
+    <img id="lightboxImg" style="max-width: 90%; max-height: 90vh; margin: auto; display: block; border-radius: 8px; object-fit: contain;">
+</div>
+<script>
+    document.querySelectorAll('.floating-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const parent = button.closest('.floating-dropdown');
+            const dropdown = parent.querySelector('.floating-dropdown-content');
+            
+            // Close other open floating menus
+            document.querySelectorAll('.floating-dropdown-content').forEach(menu => {
+                if (menu !== dropdown) menu.classList.remove('show');
+            });
+            document.querySelectorAll('.floating-btn').forEach(btn => {
+                if (btn !== button) btn.classList.remove('active');
+            });
+
+            // Toggle current menu state
+            dropdown.classList.toggle('show');
+            button.classList.toggle('active');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.floating-dropdown-content').forEach(menu => menu.classList.remove('show'));
+        document.querySelectorAll('.floating-btn').forEach(btn => btn.classList.remove('active'));
+    });
+</script>
+</body>
+</html>

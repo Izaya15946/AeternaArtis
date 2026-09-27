@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow Arts - Aeterna Artis</title>
+    <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="GalleryStyle.css">
+    <link rel="stylesheet" href="Website.css">
+    
+    <script src="logout.js"></script>
+</head>
+<body>
+
+    <!-- NAVIGATION BAR -->
+    <div class="navbar">
+        <a href="Websitehtml.html" class="logo-wrapper">
+            <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
+        </a>
+        
+        <div class="nav-links">
+            <a href="Websitehtml.html" class="nav-icon-link" title="Home">
+                <i class="fa-solid fa-house"></i>
+            </a>
+            <a href="Gallery.html" class="nav-icon-link active" title="Explore">
+                <i class="fa-solid fa-compass"></i>
+            </a>
+            <a href="AccountProfile.html" class="nav-icon-link" title="Profile">
+                <i class="fa-solid fa-circle-user"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- FLOATING ACTION / MENU STACK -->
+    <div class="floating-menu-stack">
+        <div class="floating-dropdown">
+            <button class="floating-btn" id="notifyBtn" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                <i class="fa-solid fa-chevron-down arrow-sub"></i>
+            </button>
+            <div class="floating-dropdown-content">
+                <div class="menu-item"><i class="fa-solid fa-bell"></i> No new notifications</div>
+            </div>
+        </div>
+
+        <div class="floating-dropdown">
+            <button class="floating-btn" id="msgBtn" title="Messages">
+                <i class="fa-solid fa-comment-dots"></i>
+                <i class="fa-solid fa-chevron-down arrow-sub"></i>
+            </button>
+            <div class="floating-dropdown-content">
+                <div class="menu-item"><i class="fa-solid fa-envelope"></i> No new messages</div>
+            </div>
+        </div>
+
+        <div class="floating-dropdown">
+            <button class="floating-btn" id="gearBtn" title="Settings & Account">
+                <i class="fa-solid fa-gear"></i>
+                <i class="fa-solid fa-chevron-down arrow-sub"></i>
+            </button>
+            <div class="floating-dropdown-content">
+                <a href="Profile.html" class="menu-item"><i class="fa-solid fa-code"></i>Dev</a>
+                <a href="Gallery.html" class="menu-item"><i class="fa-solid fa-book"></i>Website's Gallery</a>
+                <a href="#" id="navLogout" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER BANNER BELOW NAVBAR -->
+    <div class="gallery-headtitle">
+        <h2>Glow Arts</h2>
+    </div>
+
+    <!-- BACKGROUND HERO & CARDS -->
+    <div class="gallery-hero-wrapper">
+        <div class="backimg1">
+            <div class="gallery-cards-container">
+                <a href="pics/GlowArts/HomeDesk.png" target="_blank">
+                    <img src="pics/GlowArts/1.png" alt="Glow Art 1" class="a3">
+                </a>
+                <a href="pics/GlowArts/rimurutempest.png" target="_blank">
+                    <img src="pics/GlowArts/2.png" alt="Glow Art 2" class="a3">
+                </a>
+                <a href="pics/GlowArts/Untitled10_20210505203438.png" target="_blank">
+                    <img src="pics/GlowArts/3.png" alt="Glow Art 3" class="a3">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DESCRIPTION SECTION -->
+    <section class="gallery-description-section">
+        <h3>Description: Glow Arts</h3>
+        <hr>
+        <p>
+            This is a creative piece of art that Glows in the Dark. 
+            A unique piece of art made using a harmless and non-toxic in-house glow chemical.
+            Apparently glowing effects are a mystery to a lot of people, but they're so easy!
+        </p>
+        <br>
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
+            ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit 
+            in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        </p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="gallery-footer-container">
+        <p style="margin-bottom: 10px;">Follow me on:</p>
+        <div>
+            <a href="https://www.facebook.com/isaiah.sarcia.5/" class="fa-brands fa-facebook fa-gallery" target="_blank"></a>
+            <a href="#" class="fa-brands fa-x-twitter fa-gallery"></a>
+            <a href="#" class="fa-brands fa-pinterest fa-gallery"></a>
+            <a href="#" class="fa-brands fa-instagram fa-gallery"></a>
+        </div>
+        <hr style="margin: 15px 0;">
+        <small>&copy; Copyright 2021, Arts:Gallery Cooperation. This site is for my project only.</small>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.floating-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const parent = button.closest('.floating-dropdown');
+                const dropdown = parent.querySelector('.floating-dropdown-content');
+                
+                document.querySelectorAll('.floating-dropdown-content').forEach(menu => {
+                    if (menu !== dropdown) menu.classList.remove('show');
+                });
+                document.querySelectorAll('.floating-btn').forEach(btn => {
+                    if (btn !== button) btn.classList.remove('active');
+                });
+
+                dropdown.classList.toggle('show');
+                button.classList.toggle('active');
+            });
+        });
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.floating-dropdown-content').forEach(menu => menu.classList.remove('show'));
+            document.querySelectorAll('.floating-btn').forEach(btn => btn.classList.remove('active'));
+        });
+    </script>
+</body>
+</html>
