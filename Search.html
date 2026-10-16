@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search & Explore | Arts:Gallery</title>
+    <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="AccountProfile.css">
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBIefhfw87VtaK_BtSHli0OPAksm1wqQ1s",
+        authDomain: "aeterna-artis-618a2.firebaseapp.com",
+        projectId: "aeterna-artis-618a2",
+        storageBucket: "aeterna-artis-618a2.firebasestorage.app",
+        messagingSenderId: "793700191025",
+        appId: "1:793700191025:web:4272ade31590f5d0aebe10"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.auth = getAuth(app);
+      window.db = getFirestore(app);
+    </script>
+
+    <script type="module" src="Profile.js"></script>
+    <script type="module" src="posts.js"></script>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="Websitehtml.html" class="logo-wrapper">
+        <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
+    </a>
+
+
+
+    <div class="nav-links">
+        <a href="Websitehtml.html" class="nav-icon-link" title="Home">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        <a href="Search.html" class="nav-icon-link active" title="Search & Explore">
+            <i class="fa-solid fa-compass"></i>
+        </a>
+        <a href="AccountProfile.html" class="nav-icon-link" title="Profile">
+            <i class="fa-solid fa-circle-user"></i>
+        </a>
+    </div>
+</div>
+
+<div class="layout" style="margin-top: 30px;">
+    <div style="width: 100%; max-width: 800px; margin: 0 auto;">
+        <div class="Account-Container" style="margin-bottom: 20px;">
+            <h2 style="color: var(--text-main); font-size: 22px; margin-bottom: 12px;">Search Results</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <input type="text" id="pageSearchQuery" class="search-page-input" placeholder="Search posts, captions, artists...">
+                <button type="button" id="executeSearchBtn" class="btn-submit">Search</button>
+            </div>
+            <p id="searchSummaryText" style="font-size: 13px; color: var(--text-muted);"></p>
+        </div>
+
+        <div id="searchResultsContainer"></div>
+    </div>
+</div>
+
+<!-- INSTAGRAM-STYLE POST DETAIL / LIGHTBOX MODAL -->
+<div id="igPostDetailModal" class="ig-modal-overlay">
+    <button type="button" class="ig-close-btn" onclick="closeIgModal()">&times;</button>
+    <div class="ig-modal-container">
+        <div class="ig-modal-left">
+            <img id="igModalImg" src="" alt="Post Detail">
+        </div>
+        <div class="ig-modal-right">
+            <div class="ig-modal-header" id="igModalHeader"></div>
+            <div class="ig-modal-scroll-body" id="igModalCommentsBody"></div>
+            <div class="ig-modal-footer">
+                <div class="post-actions-bar" style="margin-top:0; margin-bottom: 10px;">
+                    <button type="button" id="igModalLikeBtn" class="like-btn">
+                        <i class="fa fa-heart-o"></i>
+                    </button>
+                    <span id="igModalLikesCount" style="font-size: 13px; font-weight: bold; color: var(--text-main);">0 likes</span>
+                </div>
+                <div class="comment-box-container" style="margin-top:0;">
+                    <input type="text" id="igModalCommentInput" placeholder="Add a comment...">
+                    <button type="button" id="igModalSubmitCommentBtn">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q') || '';
+        
+        const input = document.getElementById("pageSearchQuery");
+        const navInput = document.getElementById("navSearchInput");
+        
+        if (input) input.value = query;
+        if (navInput) navInput.value = query;
+
+        const execBtn = document.getElementById("executeSearchBtn");
+        if (execBtn) {
+            execBtn.onclick = () => {
+                const val = input.value.trim();
+                window.location.href = `Search.html?q=${encodeURIComponent(val)}`;
+            };
+        }
+    });
+</script>
+</body>
+</html>

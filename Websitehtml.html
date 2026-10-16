@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Aeterna Artis</title>
-    <link rel="shortcut icon" href="pics/logo/AeternaArtis">
+    <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="Website.css">
 
@@ -30,7 +30,6 @@
       window.storage = getStorage(app);
     </script>
 
-    <!-- Added type="module" to external scripts -->
     <script type="module" src="Profile.js"></script>
     <script type="module" src="posts.js"></script>
 </head>
@@ -42,12 +41,16 @@
         <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
     </a>
 
-    <!-- Middle/Right Nav Links using Icons -->
+    <form id="topNavSearchForm" action="Search.html" method="GET" class="nav-search-form">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" name="q" id="navSearchInput" placeholder="Search artwork, tags, or artists..." autocomplete="off">
+    </form>
+
     <div class="nav-links">
         <a href="Websitehtml.html" class="nav-icon-link active" title="Home">
             <i class="fa-solid fa-house"></i>
         </a>
-        <a href="Home.html" class="nav-icon-link" title="Explore">
+        <a href="Search.html" class="nav-icon-link" title="Explore">
             <i class="fa-solid fa-compass"></i>
         </a>
         <a href="AccountProfile.html" class="nav-icon-link" title="Profile">
@@ -56,174 +59,278 @@
     </div>
 </div>
 
-<!-- FLOATING ACTION / MENU STACK (Outside Navbar) -->
-<div class="floating-menu-stack">
-    <!-- Notification Button with Dropdown -->
-    <div class="floating-dropdown">
-        <button class="floating-btn" id="notifyBtn" title="Notifications">
-            <i class="fa-solid fa-bell"></i>
-            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+<!-- FLOATING SETTINGS & CREATE POST STACK -->
+<div class="floating-settings-container">
+    <button id="floatingSettingsBtn" class="floating-settings-btn" title="Settings">
+        <i class="fa-solid fa-gear"></i>
+    </button>
+    <button id="floatingCreatePostBtn" class="floating-create-btn" title="Create New Post">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+    <div id="floatingSettingsDropdown" class="floating-settings-menu">
+        <button id="toggleSidebarMenuBtn" class="settings-menu-item">
+            <i class="fa-solid fa-columns"></i> Toggle Sidebars
         </button>
-        <div class="floating-dropdown-content">
-            <div class="menu-item"><i class="fa-solid fa-bell"></i> No new notifications</div>
-        </div>
-    </div>
-
-    <!-- Messages Button with Dropdown -->
-    <div class="floating-dropdown">
-        <button class="floating-btn" id="msgBtn" title="Messages">
-            <i class="fa-solid fa-comment-dots"></i>
-            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+        <button id="themeToggleMenuBtn" class="settings-menu-item">
+            <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Light Mode</span>
         </button>
-        <div class="floating-dropdown-content">
-            <div class="menu-item"><i class="fa-solid fa-envelope"></i> No new messages</div>
-        </div>
-    </div>
-
-    <!-- Gear/Settings Button with Logout Menu -->
-    <div class="floating-dropdown">
-        <button class="floating-btn" id="gearBtn" title="Settings & Account">
-            <i class="fa-solid fa-gear"></i>
-            <i class="fa-solid fa-chevron-down arrow-sub"></i>
+        <button id="navLogout" class="settings-menu-item logout-item">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
         </button>
-        <div class="floating-dropdown-content">
-            <a href="Profile.html" class="menu-item"><i class="fa-solid fa-code"></i>Dev</a>
-            <a href="Gallery.html" class="menu-item"><i class="fa fa-book"></i>Website's Gallery</a>
-            <a href="#" id="navLogout" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-        </div>
     </div>
 </div>
                     
-    <!-- HERO / BANNER -->
-    <div class="backimg1">
-        <div class="header">
-            <img src="AeteraArtis2.png"height="auto" width="30%">
-            <p>Discover, share, and celebrate digital & glowing artworks.</p>
-        </div>
+<!-- HERO / BANNER -->
+<div class="backimg1">
+    <div class="header">
+        <img src="AeteraArtis2.png" height="auto" width="30%">
+        <p>Discover, share, and celebrate digital & glowing artworks.</p>
     </div>
+</div>
 
-    <!-- MAIN PAGE LAYOUT -->
-    <div class="layout">
-        <div class="left-layer">
+<!-- MAIN PAGE LAYOUT -->
+<div class="layout" id="mainLayoutContainer">
+    <div class="left-layer" id="leftSidebarCol">
         <!-- LEFT SIDEBAR -->
         <div class="leftsidebar">
             <h3>Quick Navigation</h3>
             <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa fa-home"></i> Feed</p></a>
-            <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa-solid fa-fire"></i> Trending</p></a>
-            <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa fa-bookmark"></i> Dashboard</p></a>
-			<a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa-solid fa-gear"></i> Settings</p></a>
+            <a href="Search.html" style="text-decoration: none;"><p><i class="fa-solid fa-fire"></i> Trending</p></a>
+            <a href="Search.html" style="text-decoration: none;"><p><i class="fa-solid fa-magnifying-glass"></i> Search Artists</p></a>
         </div>
         <div class="leftsidebar">
             <h3>Post Type</h3>
             <button class="filter-btn active" onclick="filterPosts('postType', 'All')">All Types</button>
             <button class="filter-btn" onclick="filterPosts('postType', 'Showcasing')">Showcasing</button>
             <button class="filter-btn" onclick="filterPosts('postType', 'Selling')">Selling</button>
-            </div>
         </div>
-        <!-- FEED CONTAINER -->
-        <div class="middle-layer">
-            
-                    <div class="create-post-bar">
-                        <img class="profile-pic" src="Profile-Placeholder.png" alt="Profile">
-                        <button id="openModalBtn" type="button">Share your thoughts or artworks...</button>
-                        </div>
+    </div>
 
-            <!-- Post Modal Window -->
-                    <div id="postModal" class="modal">
-                    <div class="modal-content">
-                        <h3>Create New Post</h3>
-                        
-                        <!-- Horizontal Dropdowns -->
+    <!-- FEED CONTAINER -->
+    <div class="middle-layer1">
 
 
-                        <!-- Description -->
-                        <label for="modalContent">Description</label>
-                        <textarea id="modalContent" placeholder="Describe your artwork or thoughts..."></textarea>
-                        <div class="form-row">
-                        <div class="form-group">
-                            <label for="modalCategory">Category</label>
-                            <select id="modalCategory">
-                            <option value="Digital Art">Digital Art</option>
-                            <option value="Traditional Art">Traditional Art</option>
-                            <option value="3D Model">3D Model</option>
-                            </select>
-                        </div>
+        <!-- Post Modal Window -->
+        <div id="postModal" class="modal">
+            <div class="modal-content post-modal-card">
+                <div class="modal-header">
+                    <h3>Create Post</h3>
+                    <button id="closeModalBtn" type="button" class="close-modal-x">&times;</button>
+                </div>
 
-                        <div class="form-group">
-                            <label for="modalPostType">Post Type</label>
-                            <select id="modalPostType">
-                            <option value="Showcasing">Showcasing</option>
-                            <option value="Selling">Selling</option>
-                            </select>
-                        </div>
-                        </div>
-                        <!-- File Upload and Live Preview -->
-                        <div id="imagePreviewContainer" style="display:none; margin-bottom:15px; text-align:center;">
-                        <img id="imagePreview" src="" alt="Preview" style="width:100%; height:auto; border-radius:8px; border:1px solid #32323e;">
-                        </div>
-                        <label for="modalImageInput">Upload Artwork</label>
-                        <input type="file" id="modalImageInput" accept="image/*">
-
-
-                        <!-- Actions -->
-                        <div class="modal-actions">
-                        <button id="closeModalBtn" type="button" class="btn-cancel">Cancel</button>
-                        <button id="submitModalPostBtn" type="button" class="btn-submit">Post</button>
+                <div class="post-modal-body">
+                    <div class="post-user-info-row">
+                        <img id="modalUserAvatar" src="Profile-Placeholder.png" alt="Profile" class="modal-user-avatar">
+                        <div class="post-user-details">
+                            <span id="modalUserName" class="modal-user-name">User</span>
+                            <div class="post-meta-selects">
+                                <select id="modalCategory" class="mini-select">
+                                    <option value="Digital Art">Digital Art</option>
+                                    <option value="Traditional Art">Traditional Art</option>
+                                    <option value="3D Model">3D Model</option>
+                                </select>
+                                <select id="modalPostType" class="mini-select">
+                                    <option value="Showcasing">Showcasing</option>
+                                    <option value="Selling">Selling</option>
+                                    <option value="Open Commission">Open Commission</option>
+                                </select>
+                                <select id="modalNsfwRating" class="mini-select rating-select">
+                                    <option value="SFW">SFW (Safe)</option>
+                                    <option value="NSFW">NSFW (18+)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    
-            
+
+                    <textarea id="modalContent" class="post-textarea" placeholder="What's on your mind?"></textarea>
+
+                    <div id="contactLinkGroup" class="contact-link-wrapper" style="display: none;">
+                        <i class="fa-solid fa-link"></i>
+                        <input type="text" id="modalContactLink" placeholder="Add contact/purchase link (e.g. email or portfolio link)">
+                    </div>
+
+                    <div id="imagePreviewContainer" class="create-post-preview-box" style="display: none;">
+                        <button type="button" id="removePreviewImgBtn" class="remove-preview-btn">&times;</button>
+                        <img id="imagePreview" src="" alt="Artwork Preview">
+                    </div>
+
+                    <div class="add-to-post-bar">
+                        <span>Add to your post</span>
+                        <label for="modalImageInput" class="add-media-btn" title="Add Photo">
+                            <i class="fa-solid fa-image"></i>
+                            <input type="file" id="modalImageInput" accept="image/*" hidden>
+                        </label>
+                    </div>
                 </div>
-                <div id="feedContainer"></div>
+
+                <div class="modal-actions" style="margin-top: 12px;">
+                    <button id="submitModalPostBtn" type="button" class="btn-submit btn-post-block">Post</button>
+                </div>
+            </div>
         </div>
-        <div class="right-layer">
+
+        <div id="feedContainer"></div>
+    </div>
+
+    <div class="right-layer" id="rightSidebarCol">
         <!-- RIGHT SIDEBAR -->
         <div class="rightsidebar">
             <h3>Popular Tags</h3>
             <div class="tags-container">
-            <span class="filter-btn" style="display:inline-block; width:auto;">#Traditional</span>
-            <span class="filter-btn" style="display:inline-block; width:auto;">#DigitalArts</span>
+                <a href="Search.html?q=Traditional" class="filter-btn" style="display:inline-block; width:auto; text-decoration:none;">#Traditional</a>
+                <a href="Search.html?q=DigitalArts" class="filter-btn" style="display:inline-block; width:auto; text-decoration:none;">#DigitalArts</a>
             </div>
         </div>
         <div class="rightsidebar">
-        <h3>Categories</h3>
-        <button class="filter-btn active" onclick="filterPosts('category', 'All')">All Categories</button>
-        <button class="filter-btn" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
-        <button class="filter-btn" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
-        <button class="filter-btn" onclick="filterPosts('category', '3D Model')">3D Model</button>
+            <h3>Categories</h3>
+            <button class="filter-btn active" onclick="filterPosts('category', 'All')">All Categories</button>
+            <button class="filter-btn" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
+            <button class="filter-btn" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
+            <button class="filter-btn" onclick="filterPosts('category', '3D Model')">3D Model</button>
         </div>
+    </div>
 </div>
-    
-<div id="imageLightbox" class="modal" style="display: none; background-color: rgba(0, 0, 0, 0.9); cursor: pointer;" onclick="closeLightbox()">
-    <span style="position: absolute; top: 20px; right: 35px; color: #fff; font-size: 40px; font-weight: bold;">&times;</span>
-    <img id="lightboxImg" style="max-width: 90%; max-height: 90vh; margin: auto; display: block; border-radius: 8px; object-fit: contain;">
+
+<div id="logoutConfirmModal" class="modal">
+    <div class="modal-content" style="max-width: 360px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border: none; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 18px;">Log out of your account?</h3>
+        </div>
+        <p style="font-size: 14px; margin-bottom: 20px; color: var(--text-muted);">Are you sure you want to log out?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="cancelLogoutBtn" class="btn-cancel" style="flex: 1;">Cancel</button>
+            <button id="confirmLogoutBtn" class="btn-submit" style="flex: 1; background: #ff4d4d; color: #fff;">Log Out</button>
+        </div>
+    </div>
 </div>
+
+<!-- INSTAGRAM-STYLE POST DETAIL / LIGHTBOX MODAL -->
+<div id="igPostDetailModal" class="ig-modal-overlay">
+    <button type="button" class="ig-close-btn" onclick="closeIgModal()">&times;</button>
+    <div class="ig-modal-container">
+        <div class="ig-modal-left">
+            <img id="igModalImg" src="" alt="Post Detail">
+        </div>
+        <div class="ig-modal-right">
+            <div class="ig-modal-header" id="igModalHeader"></div>
+            <div class="ig-modal-scroll-body" id="igModalCommentsBody"></div>
+            <div class="ig-modal-footer">
+                <div class="post-actions-bar" style="margin-top:0; margin-bottom: 10px;">
+                    <button type="button" id="igModalLikeBtn" class="like-btn">
+                        <i class="fa fa-heart-o"></i>
+                    </button>
+                    <span id="igModalLikesCount" style="font-size: 13px; font-weight: bold; color: var(--text-main);">0 likes</span>
+                </div>
+                <div class="comment-box-container" style="margin-top:0;">
+                    <input type="text" id="igModalCommentInput" placeholder="Add a comment...">
+                    <button type="button" id="igModalSubmitCommentBtn">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.querySelectorAll('.floating-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
+    const settingsBtn = document.getElementById("floatingSettingsBtn");
+    const settingsMenu = document.getElementById("floatingSettingsDropdown");
+
+    if (settingsBtn && settingsMenu) {
+        settingsBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const parent = button.closest('.floating-dropdown');
-            const dropdown = parent.querySelector('.floating-dropdown-content');
-            
-            // Close other open floating menus
-            document.querySelectorAll('.floating-dropdown-content').forEach(menu => {
-                if (menu !== dropdown) menu.classList.remove('show');
-            });
-            document.querySelectorAll('.floating-btn').forEach(btn => {
-                if (btn !== button) btn.classList.remove('active');
-            });
-
-            // Toggle current menu state
-            dropdown.classList.toggle('show');
-            button.classList.toggle('active');
+            settingsMenu.classList.toggle("show");
         });
-    });
+        document.addEventListener("click", () => {
+            settingsMenu.classList.remove("show");
+        });
+    }
 
-    // Close menu when clicking outside
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.floating-dropdown-content').forEach(menu => menu.classList.remove('show'));
-        document.querySelectorAll('.floating-btn').forEach(btn => btn.classList.remove('active'));
-    });
+    const toggleSidebarBtn = document.getElementById("toggleSidebarMenuBtn");
+    const leftCol = document.getElementById("leftSidebarCol");
+    const rightCol = document.getElementById("rightSidebarCol");
+
+    if (toggleSidebarBtn && leftCol && rightCol) {
+        toggleSidebarBtn.addEventListener("click", () => {
+            const isHidden = leftCol.style.display === "none";
+            leftCol.style.display = isHidden ? "flex" : "none";
+            rightCol.style.display = isHidden ? "flex" : "none";
+            settingsMenu.classList.remove("show");
+        });
+    }
+
+    const themeToggleBtn = document.getElementById("themeToggleMenuBtn");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeText = document.getElementById("themeText");
+    const htmlRoot = document.documentElement;
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            const currentTheme = htmlRoot.getAttribute("data-theme");
+            if (currentTheme === "dark") {
+                htmlRoot.setAttribute("data-theme", "light");
+                themeIcon.className = "fa-solid fa-sun";
+                themeText.textContent = "Dark Mode";
+                localStorage.setItem("themePreference", "light");
+            } else {
+                htmlRoot.setAttribute("data-theme", "dark");
+                themeIcon.className = "fa-solid fa-moon";
+                themeText.textContent = "Light Mode";
+                localStorage.setItem("themePreference", "dark");
+            }
+            settingsMenu.classList.remove("show");
+        });
+
+        const savedTheme = localStorage.getItem("themePreference");
+        if (savedTheme === "light") {
+            htmlRoot.setAttribute("data-theme", "light");
+            themeIcon.className = "fa-solid fa-sun";
+            themeText.textContent = "Dark Mode";
+        }
+    }
+
+    const logoutBtn = document.getElementById("navLogout");
+    const logoutModal = document.getElementById("logoutConfirmModal");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+    if (logoutBtn && logoutModal) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            logoutModal.style.display = "flex";
+            if (settingsMenu) settingsMenu.classList.remove("show");
+        });
+    }
+
+    if (cancelLogoutBtn && logoutModal) {
+        cancelLogoutBtn.addEventListener("click", () => {
+            logoutModal.style.display = "none";
+        });
+    }
+
+    if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener("click", async () => {
+            try {
+                if (window.auth) {
+                    await window.auth.signOut();
+                }
+                localStorage.clear();
+                window.location.href = "index.html";
+            } catch (err) {
+                console.error("Logout error:", err);
+                localStorage.clear();
+                window.location.href = "index.html";
+            }
+        });
+    }
+
+    const editModal = document.getElementById("editProfileModal");
+    const openEditBtn = document.getElementById("openEditModalBtn");
+    const closeEditBtn = document.getElementById("closeEditModalBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    if (openEditBtn && editModal) openEditBtn.onclick = () => editModal.style.display = "flex";
+    if (closeEditBtn && editModal) closeEditBtn.onclick = () => editModal.style.display = "none";
+    if (cancelEditBtn && editModal) cancelEditBtn.onclick = () => editModal.style.display = "none";
 </script>
 </body>
 </html>

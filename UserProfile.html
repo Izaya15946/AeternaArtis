@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Profile | Arts:Gallery</title>
+    <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="AccountProfile.css">
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBIefhfw87VtaK_BtSHli0OPAksm1wqQ1s",
+        authDomain: "aeterna-artis-618a2.firebaseapp.com",
+        projectId: "aeterna-artis-618a2",
+        storageBucket: "aeterna-artis-618a2.firebasestorage.app",
+        messagingSenderId: "793700191025",
+        appId: "1:793700191025:web:4272ade31590f5d0aebe10"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.auth = getAuth(app);
+      window.db = getFirestore(app);
+    </script>
+    <script type="module" src="Profile.js"></script>
+    <script type="module" src="posts.js"></script>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="Websitehtml.html" class="logo-wrapper">
+        <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
+    </a>
+    <form id="topNavSearchForm" action="Search.html" method="GET" class="nav-search-form">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" name="q" id="navSearchInput" placeholder="Search artwork, tags, or artists..." autocomplete="off">
+    </form>
+    <div class="nav-links">
+        <a href="Websitehtml.html" class="nav-icon-link" title="Home"><i class="fa-solid fa-house"></i></a>
+        <a href="Search.html" class="nav-icon-link" title="Explore"><i class="fa-solid fa-compass"></i></a>
+        <a href="AccountProfile.html" class="nav-icon-link" title="Profile"><i class="fa-solid fa-circle-user"></i></a>
+    </div>
+</div>
+
+<div class="floating-settings-container">
+    <button id="floatingSettingsBtn" class="floating-settings-btn" title="Settings">
+        <i class="fa-solid fa-gear"></i>
+    </button>
+    <button id="floatingCreatePostBtn" class="floating-create-btn" title="Create New Post" style="display: none;">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+    <div id="floatingSettingsDropdown" class="floating-settings-menu">
+        <button id="toggleSidebarMenuBtn" class="settings-menu-item">
+            <i class="fa-solid fa-columns"></i> Toggle Sidebars
+        </button>
+        <button id="themeToggleMenuBtn" class="settings-menu-item">
+            <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Light Mode</span>
+        </button>
+        <button id="navLogout" class="settings-menu-item logout-item">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="profile-container" style="display: flex; gap: 30px; align-items: center; justify-content: space-between;"> 
+        
+        <!-- Left Column: Avatar, Name, Username & Stats -->
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div class="Profile-Pic" style="width: 130px; height: 130px;">
+                <img class="profile-pic" id="targetProfileImg" src="Profile-Placeholder.png" alt="Profile">
+            </div>
+
+            <div>
+                <h3 id="targetProfileName" class="prof-name" style="margin: 0; color: var(--text-main) !important; font-size: 26px;">Loading...</h3>
+                <span id="targetProfileUsername" style="font-size: 13px; color: var(--text-muted); display: block; margin-top: 2px;">@username</span>
+                <div style="display: flex; gap: 16px; font-size: 13px; margin-top: 8px; color: var(--text-muted);">
+                    <span><strong id="targetPostsCount">0</strong> posts</span>
+                    <span><strong id="targetFollowersCount">0</strong> followers</span>
+                    <span><strong id="targetFollowingCount">0</strong> following</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Bio Box -->
+        <div style="flex: 1; max-width: 450px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <span style="font-size: 11px; font-weight: bold; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">About Me</span>
+            <p id="targetProfileBio" style="font-size: 14px; line-height: 1.5; color: var(--text-main); white-space: pre-line; word-break: break-word; margin: 0;">No bio yet.</p>
+        </div>
+
+        <!-- Right Column: Follow Button -->
+        <div style="width: 250px;"></div>
+        <div id="targetFollowActionContainer"></div>
+
+    </div>
+</div>
+
+<div class="layout" id="mainLayoutContainer" style="margin-top: 20px;">
+    
+    <div class="left-layer" id="leftSidebarCol">
+        <div class="leftsidebar">
+            <h3>Quick Navigation</h3>
+            <a href="Websitehtml.html" style="text-decoration: none;"><p><i class="fa fa-home"></i> Feed</p></a>
+            <a href="Search.html" style="text-decoration: none;"><p><i class="fa-solid fa-fire"></i> Trending</p></a>
+            <a href="Search.html" style="text-decoration: none;"><p><i class="fa-solid fa-magnifying-glass"></i> Search Artists</p></a>
+        </div>
+        <div class="leftsidebar">
+            <h3>Post Type</h3>
+            <button class="filter-btn active" onclick="filterPosts('postType', 'All')">All Types</button>
+            <button class="filter-btn" onclick="filterPosts('postType', 'Showcasing')">Showcasing</button>
+            <button class="filter-btn" onclick="filterPosts('postType', 'Selling')">Selling</button>
+        </div>
+    </div>
+
+    <div class="middle-layer1">
+        <h3 style="color: var(--text-main); margin-bottom: 5px;font-size: 30px;">Artist Posts</h3>
+        <div id="targetUserFeedContainer"></div>
+    </div>
+
+    <div class="right-layer" id="rightSidebarCol">
+        <div class="rightsidebar">
+            <h3>Popular Tags</h3>
+            <div class="tags-container">
+                <a href="Search.html?q=Traditional" class="filter-btn" style="display:inline-block; width:auto; text-decoration:none;">#Traditional</a>
+                <a href="Search.html?q=DigitalArts" class="filter-btn" style="display:inline-block; width:auto; text-decoration:none;">#DigitalArts</a>
+            </div>
+        </div>
+        <div class="rightsidebar">
+            <h3>Categories</h3>
+            <button class="filter-btn active" onclick="filterPosts('category', 'All')">All Categories</button>
+            <button class="filter-btn" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
+            <button class="filter-btn" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
+            <button class="filter-btn" onclick="filterPosts('category', '3D Model')">3D Model</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="logoutConfirmModal" class="modal">
+    <div class="modal-content" style="max-width: 360px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border: none; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 18px;">Log out of your account?</h3>
+        </div>
+        <p style="font-size: 14px; margin-bottom: 20px; color: var(--text-muted);">Are you sure you want to log out?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="cancelLogoutBtn" class="btn-cancel" style="flex: 1;">Cancel</button>
+            <button id="confirmLogoutBtn" class="btn-submit" style="flex: 1; background: #ff4d4d; color: #fff;">Log Out</button>
+        </div>
+    </div>
+</div>
+
+<div id="igPostDetailModal" class="ig-modal-overlay">
+    <button type="button" class="ig-close-btn" onclick="closeIgModal()">&times;</button>
+    <div class="ig-modal-container">
+        <div class="ig-modal-left">
+            <img id="igModalImg" src="" alt="Post Detail">
+        </div>
+        <div class="ig-modal-right">
+            <div class="ig-modal-header" id="igModalHeader"></div>
+            <div class="ig-modal-scroll-body" id="igModalCommentsBody"></div>
+            <div class="ig-modal-footer">
+                <div class="post-actions-bar" style="margin-top:0; margin-bottom: 10px;">
+                    <button type="button" id="igModalLikeBtn" class="like-btn">
+                        <i class="fa fa-heart-o"></i>
+                    </button>
+                    <span id="igModalLikesCount" style="font-size: 13px; font-weight: bold; color: var(--text-main);">0 likes</span>
+                </div>
+                <div class="comment-box-container" style="margin-top:0;">
+                    <input type="text" id="igModalCommentInput" placeholder="Add a comment...">
+                    <button type="button" id="igModalSubmitCommentBtn">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const settingsBtn = document.getElementById("floatingSettingsBtn");
+    const settingsMenu = document.getElementById("floatingSettingsDropdown");
+
+    if (settingsBtn && settingsMenu) {
+        settingsBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle("show");
+        });
+        document.addEventListener("click", () => {
+            settingsMenu.classList.remove("show");
+        });
+    }
+
+    const toggleSidebarBtn = document.getElementById("toggleSidebarMenuBtn");
+    const leftCol = document.getElementById("leftSidebarCol");
+    const rightCol = document.getElementById("rightSidebarCol");
+
+    if (toggleSidebarBtn && leftCol && rightCol) {
+        toggleSidebarBtn.addEventListener("click", () => {
+            const isHidden = leftCol.style.display === "none";
+            leftCol.style.display = isHidden ? "flex" : "none";
+            rightCol.style.display = isHidden ? "flex" : "none";
+            settingsMenu.classList.remove("show");
+        });
+    }
+
+    const themeToggleBtn = document.getElementById("themeToggleMenuBtn");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeText = document.getElementById("themeText");
+    const htmlRoot = document.documentElement;
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            const currentTheme = htmlRoot.getAttribute("data-theme");
+            if (currentTheme === "dark") {
+                htmlRoot.setAttribute("data-theme", "light");
+                themeIcon.className = "fa-solid fa-sun";
+                themeText.textContent = "Dark Mode";
+                localStorage.setItem("themePreference", "light");
+            } else {
+                htmlRoot.setAttribute("data-theme", "dark");
+                themeIcon.className = "fa-solid fa-moon";
+                themeText.textContent = "Light Mode";
+                localStorage.setItem("themePreference", "dark");
+            }
+            settingsMenu.classList.remove("show");
+        });
+
+        const savedTheme = localStorage.getItem("themePreference");
+        if (savedTheme === "light") {
+            htmlRoot.setAttribute("data-theme", "light");
+            themeIcon.className = "fa-solid fa-sun";
+            themeText.textContent = "Dark Mode";
+        }
+    }
+
+    const logoutBtn = document.getElementById("navLogout");
+    const logoutModal = document.getElementById("logoutConfirmModal");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+
+    if (logoutBtn && logoutModal) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            logoutModal.style.display = "flex";
+            settingsMenu.classList.remove("show");
+        });
+    }
+    if (cancelLogoutBtn && logoutModal) {
+        cancelLogoutBtn.addEventListener("click", () => {
+            logoutModal.style.display = "none";
+        });
+    }
+</script>
+</body>
+</html>
