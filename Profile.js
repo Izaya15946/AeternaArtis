@@ -3,6 +3,7 @@ import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/fire
 import { 
   getFirestore, 
   doc, 
+  getDoc,
   updateDoc, 
   collection, 
   query, 
@@ -57,14 +58,6 @@ async function uploadToDrive(file) {
   });
 }
 
-function updateProfileImages(imageUrl) {
-  const images = document.querySelectorAll(".profile-pic");
-  images.forEach(img => {
-    // Explicit fallback: if imageUrl is empty, null, or undefined, use the placeholder
-    img.src = imageUrl ? imageUrl : "Profile-Placeholder.png";
-  });
-}
-
 function formatBioText(text) {
   if (!text) return "No bio yet.";
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -73,23 +66,78 @@ function formatBioText(text) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  const userEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
-  const storedUserStr = localStorage.getItem("userProfile");
-
-  if (!userEmail) {
+document.addEventListener("DOMContentLoaded", async function() {
+  const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
+  
+  if (!currentUserEmail) {
     alert("Please log in first!");
     window.location.href = "index.html";
     return;
   }
 
-  if (storedUserStr) {
-    const user = JSON.parse(storedUserStr);
-    const uname = user.email ? user.email.split("@")[0] : "user";
+  // Check if we are viewing a specific user via URL parameters (e.g., UserProfile_4.html?email=justin@email.com)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetEmailParam = urlParams.get("email");
+  const targetUidParam = urlParams.get("uid");
+
+  let profileData = null;
+
+  if (targetEmailParam || targetUidParam) {
+    try {
+      const usersRef = collection(db, "users");
+      let q;
+      if (targetEmailParam) {
+        q = query(usersRef, where("email", "==", targetEmailParam.toLowerCase().trim()));
+      } else {
+        q = query(usersRef, where("uid", "==", targetUidParam));
+      }
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        profileData = querySnapshot.docs[0].data();
+      }
+    } catch (err) {
+      console.error("Error fetching target profile:", err);
+    }
+  }
+
+  // If no URL parameter was found or query failed, fall back to the logged-in user's profile
+  if (!profileData) {
+    const storedUserStr = localStorage.getItem("userProfile");
+    if (storedUserStr) {
+      profileData = JSON.parse(storedUserStr);
+    }
+  }
+
+  if (profileData) {
+    const uname = profileData.email ? profileData.email.split("@")[0] : "user";
     
+    // Populate target elements if they exist on the page (for UserProfile pages)
+    const targetImg = document.getElementById("targetProfileImg");
+    if (targetImg) {
+      targetImg.src = profileData.imageUrl ? profileData.imageUrl : "Profile-Placeholder.png";
+    }
+
+    const targetName = document.getElementById("targetProfileName");
+    if (targetName) {
+      targetName.textContent = profileData.fullname || "User";
+      if (profileData.nameFont) targetName.style.fontFamily = profileData.nameFont;
+      targetName.style.color = "var(--text-main)";
+    }
+
+    const targetUsername = document.getElementById("targetProfileUsername");
+    if (targetUsername) {
+      targetUsername.textContent = `@${uname}`;
+    }
+
+    const targetBio = document.getElementById("targetProfileBio");
+    if (targetBio) {
+      targetBio.innerHTML = formatBioText(profileData.bio);
+    }
+
+    // Also update generic profile elements if present on regular profile pages
     document.querySelectorAll(".prof-name").forEach(el => { 
-      el.textContent = user.fullname; 
-      if (user.nameFont) el.style.fontFamily = user.nameFont;
+      el.textContent = profileData.fullname; 
+      if (profileData.nameFont) el.style.fontFamily = profileData.nameFont;
       el.style.color = "var(--text-main)";
     });
 
@@ -97,25 +145,29 @@ document.addEventListener("DOMContentLoaded", function() {
       el.textContent = `@${uname}`;
     });
 
-    // Pass the image URL or empty string to correctly trigger the placeholder fallback
-    updateProfileImages(user.imageUrl);
+    document.querySelectorAll(".profile-pic").forEach(img => {
+      // Skip targetProfileImg since it was handled separately above, or handle universally
+      if (img.id !== "targetProfileImg") {
+        img.src = profileData.imageUrl ? profileData.imageUrl : "Profile-Placeholder.png";
+      }
+    });
 
     if (document.getElementById("profileBioInput")) {
-      document.getElementById("profileBioInput").value = user.bio || "";
+      document.getElementById("profileBioInput").value = profileData.bio || "";
     }
     if (document.getElementById("artistToggleCheckbox")) {
-      document.getElementById("artistToggleCheckbox").checked = user.isArtist || false;
+      document.getElementById("artistToggleCheckbox").checked = profileData.isArtist || false;
     }
     if (document.getElementById("nsfwUnblurToggleCheckbox")) {
-      document.getElementById("nsfwUnblurToggleCheckbox").checked = user.unblurNsfw || false;
+      document.getElementById("nsfwUnblurToggleCheckbox").checked = profileData.unblurNsfw || false;
     }
-    if (document.getElementById("profileFontSelect") && user.nameFont) {
-      document.getElementById("profileFontSelect").value = user.nameFont;
+    if (document.getElementById("profileFontSelect") && profileData.nameFont) {
+      document.getElementById("profileFontSelect").value = profileData.nameFont;
     }
     
     const bioDisplay = document.getElementById("prof-bio-display");
     if (bioDisplay) {
-      bioDisplay.innerHTML = formatBioText(user.bio);
+      bioDisplay.innerHTML = formatBioText(profileData.bio);
     }
   }
 
@@ -174,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function() {
         localStorage.setItem("userProfile", JSON.stringify(currentUser));
 
         const postsRef = collection(db, "posts");
-        const q = query(postsRef, where("email", "==", userEmail));
+        const q = query(postsRef, where("email", "==", currentUserEmail));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const batch = writeBatch(db);
@@ -267,7 +319,13 @@ async function handleImageUpload(file) {
       await batch.commit();
     }
 
-    updateProfileImages(downloadURL);
+    const targetImg = document.getElementById("targetProfileImg");
+    if (targetImg) targetImg.src = downloadURL;
+
+    document.querySelectorAll(".profile-pic").forEach(img => {
+      img.src = downloadURL;
+    });
+
     storedUser.imageUrl = downloadURL;
     localStorage.setItem("userProfile", JSON.stringify(storedUser));
     alert("Profile picture updated!");
