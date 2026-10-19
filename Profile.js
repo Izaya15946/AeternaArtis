@@ -66,6 +66,17 @@ function formatBioText(text) {
   });
 }
 
+function applyGlobalSettings(profileData) {
+  const heroContainer = document.getElementById("heroBannerContainer");
+  if (heroContainer) {
+    if (profileData.hideHero) {
+      heroContainer.style.display = "none";
+    } else {
+      heroContainer.style.display = "flex";
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async function() {
   const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
   
@@ -75,7 +86,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     return;
   }
 
-  // Check if we are viewing a specific user via URL parameters (e.g., UserProfile_4.html?email=justin@email.com)
   const urlParams = new URLSearchParams(window.location.search);
   const targetEmailParam = urlParams.get("email");
   const targetUidParam = urlParams.get("uid");
@@ -100,7 +110,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
   }
 
-  // If no URL parameter was found or query failed, fall back to the logged-in user's profile
   if (!profileData) {
     const storedUserStr = localStorage.getItem("userProfile");
     if (storedUserStr) {
@@ -109,9 +118,10 @@ document.addEventListener("DOMContentLoaded", async function() {
   }
 
   if (profileData) {
+    applyGlobalSettings(profileData);
+
     const uname = profileData.email ? profileData.email.split("@")[0] : "user";
     
-    // Populate target elements if they exist on the page (for UserProfile pages)
     const targetImg = document.getElementById("targetProfileImg");
     if (targetImg) {
       targetImg.src = profileData.imageUrl ? profileData.imageUrl : "Profile-Placeholder.png";
@@ -134,7 +144,6 @@ document.addEventListener("DOMContentLoaded", async function() {
       targetBio.innerHTML = formatBioText(profileData.bio);
     }
 
-    // Also update generic profile elements if present on regular profile pages
     document.querySelectorAll(".prof-name").forEach(el => { 
       el.textContent = profileData.fullname; 
       if (profileData.nameFont) el.style.fontFamily = profileData.nameFont;
@@ -146,7 +155,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     });
 
     document.querySelectorAll(".profile-pic").forEach(img => {
-      // Skip targetProfileImg since it was handled separately above, or handle universally
       if (img.id !== "targetProfileImg") {
         img.src = profileData.imageUrl ? profileData.imageUrl : "Profile-Placeholder.png";
       }
@@ -160,6 +168,9 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
     if (document.getElementById("nsfwUnblurToggleCheckbox")) {
       document.getElementById("nsfwUnblurToggleCheckbox").checked = profileData.unblurNsfw || false;
+    }
+    if (document.getElementById("hideHeroToggleCheckbox")) {
+      document.getElementById("hideHeroToggleCheckbox").checked = profileData.hideHero || false;
     }
     if (document.getElementById("profileFontSelect") && profileData.nameFont) {
       document.getElementById("profileFontSelect").value = profileData.nameFont;
@@ -205,6 +216,7 @@ document.addEventListener("DOMContentLoaded", async function() {
       const bioText = document.getElementById("profileBioInput").value.trim();
       const isArtistStatus = document.getElementById("artistToggleCheckbox").checked;
       const unblurNsfwStatus = document.getElementById("nsfwUnblurToggleCheckbox")?.checked || false;
+      const hideHeroStatus = document.getElementById("hideHeroToggleCheckbox")?.checked || false;
       const nameFontVal = document.getElementById("profileFontSelect")?.value || "system-ui, sans-serif";
 
       saveProfileBtn.textContent = "Saving...";
@@ -216,12 +228,14 @@ document.addEventListener("DOMContentLoaded", async function() {
           bio: bioText,
           isArtist: isArtistStatus,
           unblurNsfw: unblurNsfwStatus,
+          hideHero: hideHeroStatus,
           nameFont: nameFontVal
         });
 
         currentUser.bio = bioText;
         currentUser.isArtist = isArtistStatus;
         currentUser.unblurNsfw = unblurNsfwStatus;
+        currentUser.hideHero = hideHeroStatus;
         currentUser.nameFont = nameFontVal;
         localStorage.setItem("userProfile", JSON.stringify(currentUser));
 
@@ -242,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
         document.getElementById("editProfileModal").style.display = "none";
-        alert("Profile updated successfully!");
+        alert("Profile & settings updated successfully!");
         location.reload();
       } catch (err) {
         console.error("Error saving profile:", err);

@@ -59,29 +59,18 @@
     </div>
 </div>
 
-<!-- FLOATING SETTINGS & CREATE POST STACK -->
+<!-- FLOATING SETTINGS & CREATE POST STACK (Direct Modal Trigger) -->
 <div class="floating-settings-container">
-    <button id="floatingSettingsBtn" class="floating-settings-btn" title="Settings">
+    <button id="openEditModalBtn" class="floating-settings-btn" title="User Settings">
         <i class="fa-solid fa-gear"></i>
     </button>
     <button id="floatingCreatePostBtn" class="floating-create-btn" title="Create New Post">
         <i class="fa-solid fa-plus"></i>
     </button>
-    <div id="floatingSettingsDropdown" class="floating-settings-menu">
-        <button id="toggleSidebarMenuBtn" class="settings-menu-item">
-            <i class="fa-solid fa-columns"></i> Toggle Sidebars
-        </button>
-        <button id="themeToggleMenuBtn" class="settings-menu-item">
-            <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Light Mode</span>
-        </button>
-        <button id="navLogout" class="settings-menu-item logout-item">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </button>
-    </div>
 </div>
                     
 <!-- HERO / BANNER -->
-<div class="backimg1">
+<div class="backimg1" id="heroBannerContainer">
     <div class="header">
         <img src="AeteraArtis2.png" height="auto" width="30%">
         <p>Discover, share, and celebrate digital & glowing artworks.</p>
@@ -191,6 +180,119 @@
     </div>
 </div>
 
+<!-- MODERN DISCORD-STYLE SETTINGS MODAL -->
+<div id="editProfileModal" class="discord-modal-overlay">
+    <div class="discord-modal-container">
+        <button id="closeEditModalBtn" class="discord-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        
+        <!-- Sidebar Navigation Tabs -->
+        <div class="discord-modal-sidebar">
+            <span class="discord-sidebar-title">User Settings</span>
+            <button type="button" class="discord-nav-item active" onclick="switchDiscordTab('general', this)">
+                <i class="fa-solid fa-sliders"></i> General & Toggles
+            </button>
+            <button type="button" class="discord-nav-item" onclick="switchDiscordTab('profile', this)">
+                <i class="fa-solid fa-user-pen"></i> Profile Customization
+            </button>
+            <button type="button" class="discord-nav-item logout-tab" id="modalLogoutBtn">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="discord-modal-content-area">
+            
+            <!-- TAB 1: GENERAL & TOGGLES -->
+            <div id="tab-general" class="discord-tab-pane active">
+                <h3 class="discord-section-title">Preferences & Appearance</h3>
+                
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Light Mode Theme</h4>
+                        <p>Switch between dark and light glowing aesthetics.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="themeToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Toggle Sidebars</h4>
+                        <p>Show or hide side navigation columns on your feed.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="sidebarToggleCheckbox" checked>
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Artist Mode</h4>
+                        <p>Display an official Artist Badge on your published posts.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="artistToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Always Unblur NSFW</h4>
+                        <p>Automatically reveal 18+ sensitive artwork without clicking warnings.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="nsfwUnblurToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row" style="border-bottom: none;">
+                    <div class="discord-setting-info">
+                        <h4>Hide Hero Banner</h4>
+                        <p>Collapse the top banner header for a cleaner compact view.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="hideHeroToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TAB 2: PROFILE CUSTOMIZATION -->
+            <div id="tab-profile" class="discord-tab-pane">
+                <h3 class="discord-section-title">Profile Customization</h3>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Display Name Font Style</label>
+                    <select id="profileFontSelect" class="discord-select">
+                        <option value="system-ui, sans-serif">Standard Modern (Default)</option>
+                        <option value="'Courier New', Courier, monospace">Monospace / Code</option>
+                        <option value="'Georgia', serif">Classic Serif</option>
+                        <option value="'Impact', Charcoal, sans-serif">Bold Impact</option>
+                        <option value="'Brush Script MT', cursive">Cursive / Handwritten</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">About Me / Bio</label>
+                    <textarea id="profileBioInput" class="discord-input" placeholder="Write something about yourself and your art..." style="min-height: 120px; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action Bar -->
+        <div class="discord-modal-footer">
+            <button id="cancelEditBtn" type="button" class="btn-cancel">Cancel</button>
+            <button id="saveProfileBtn" type="button" class="btn-submit">Save Changes</button>
+        </div>
+    </div>
+</div>
+
 <div id="logoutConfirmModal" class="modal">
     <div class="modal-content" style="max-width: 360px; text-align: center;">
         <div class="modal-header" style="justify-content: center; border: none; margin-bottom: 10px;">
@@ -231,73 +333,38 @@
 </div>
 
 <script>
-    const settingsBtn = document.getElementById("floatingSettingsBtn");
-    const settingsMenu = document.getElementById("floatingSettingsDropdown");
-
-    if (settingsBtn && settingsMenu) {
-        settingsBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            settingsMenu.classList.toggle("show");
-        });
-        document.addEventListener("click", () => {
-            settingsMenu.classList.remove("show");
-        });
+    function switchDiscordTab(tabName, btnElement) {
+        document.querySelectorAll('.discord-tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.querySelectorAll('.discord-nav-item').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        if (btnElement) btnElement.classList.add('active');
     }
 
-    const toggleSidebarBtn = document.getElementById("toggleSidebarMenuBtn");
-    const leftCol = document.getElementById("leftSidebarCol");
-    const rightCol = document.getElementById("rightSidebarCol");
+    const editModal = document.getElementById("editProfileModal");
+    const openEditBtn = document.getElementById("openEditModalBtn");
+    const closeEditBtn = document.getElementById("closeEditModalBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
 
-    if (toggleSidebarBtn && leftCol && rightCol) {
-        toggleSidebarBtn.addEventListener("click", () => {
-            const isHidden = leftCol.style.display === "none";
-            leftCol.style.display = isHidden ? "flex" : "none";
-            rightCol.style.display = isHidden ? "flex" : "none";
-            settingsMenu.classList.remove("show");
-        });
+    if (openEditBtn && editModal) {
+        openEditBtn.onclick = (e) => {
+            e.preventDefault();
+            editModal.style.display = "flex";
+        };
     }
+    if (closeEditBtn && editModal) closeEditBtn.onclick = () => editModal.style.display = "none";
+    if (cancelEditBtn && editModal) cancelEditBtn.onclick = () => editModal.style.display = "none";
 
-    const themeToggleBtn = document.getElementById("themeToggleMenuBtn");
-    const themeIcon = document.getElementById("themeIcon");
-    const themeText = document.getElementById("themeText");
-    const htmlRoot = document.documentElement;
-
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener("click", () => {
-            const currentTheme = htmlRoot.getAttribute("data-theme");
-            if (currentTheme === "dark") {
-                htmlRoot.setAttribute("data-theme", "light");
-                themeIcon.className = "fa-solid fa-sun";
-                themeText.textContent = "Dark Mode";
-                localStorage.setItem("themePreference", "light");
-            } else {
-                htmlRoot.setAttribute("data-theme", "dark");
-                themeIcon.className = "fa-solid fa-moon";
-                themeText.textContent = "Light Mode";
-                localStorage.setItem("themePreference", "dark");
-            }
-            settingsMenu.classList.remove("show");
-        });
-
-        const savedTheme = localStorage.getItem("themePreference");
-        if (savedTheme === "light") {
-            htmlRoot.setAttribute("data-theme", "light");
-            themeIcon.className = "fa-solid fa-sun";
-            themeText.textContent = "Dark Mode";
-        }
-    }
-
-    const logoutBtn = document.getElementById("navLogout");
+    const modalLogoutBtn = document.getElementById("modalLogoutBtn");
     const logoutModal = document.getElementById("logoutConfirmModal");
     const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
     const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 
-    if (logoutBtn && logoutModal) {
-        logoutBtn.addEventListener("click", (e) => {
+    if (modalLogoutBtn && logoutModal) {
+        modalLogoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            e.stopPropagation();
+            if (editModal) editModal.style.display = "none";
             logoutModal.style.display = "flex";
-            if (settingsMenu) settingsMenu.classList.remove("show");
         });
     }
 
@@ -323,14 +390,49 @@
         });
     }
 
-    const editModal = document.getElementById("editProfileModal");
-    const openEditBtn = document.getElementById("openEditModalBtn");
-    const closeEditBtn = document.getElementById("closeEditModalBtn");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    document.addEventListener("DOMContentLoaded", () => {
+        const htmlRoot = document.documentElement;
+        const themeCheckbox = document.getElementById("themeToggleCheckbox");
+        const savedTheme = localStorage.getItem("themePreference") || "dark";
+        
+        if (savedTheme === "light") {
+            htmlRoot.setAttribute("data-theme", "light");
+            if (themeCheckbox) themeCheckbox.checked = true;
+        } else {
+            htmlRoot.setAttribute("data-theme", "dark");
+            if (themeCheckbox) themeCheckbox.checked = false;
+        }
 
-    if (openEditBtn && editModal) openEditBtn.onclick = () => editModal.style.display = "flex";
-    if (closeEditBtn && editModal) closeEditBtn.onclick = () => editModal.style.display = "none";
-    if (cancelEditBtn && editModal) cancelEditBtn.onclick = () => editModal.style.display = "none";
+        if (themeCheckbox) {
+            themeCheckbox.addEventListener("change", () => {
+                if (themeCheckbox.checked) {
+                    htmlRoot.setAttribute("data-theme", "light");
+                    localStorage.setItem("themePreference", "light");
+                } else {
+                    htmlRoot.setAttribute("data-theme", "dark");
+                    localStorage.setItem("themePreference", "dark");
+                }
+            });
+        }
+
+        const sidebarToggle = document.getElementById("sidebarToggleCheckbox");
+        const leftCol = document.getElementById("leftSidebarCol");
+        const rightCol = document.getElementById("rightSidebarCol");
+        if (sidebarToggle && leftCol && rightCol) {
+            sidebarToggle.addEventListener("change", () => {
+                const show = sidebarToggle.checked;
+                leftCol.style.display = show ? "flex" : "none";
+                rightCol.style.display = show ? "flex" : "none";
+                localStorage.setItem("sidebarPreference", show ? "show" : "hide");
+            });
+            const savedSidebar = localStorage.getItem("sidebarPreference");
+            if (savedSidebar === "hide") {
+                sidebarToggle.checked = false;
+                leftCol.style.display = "none";
+                rightCol.style.display = "none";
+            }
+        }
+    });
 </script>
 </body>
 </html>

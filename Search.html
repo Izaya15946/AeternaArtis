@@ -12,6 +12,7 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBIefhfw87VtaK_BtSHli0OPAksm1wqQ1s",
@@ -25,6 +26,7 @@
       const app = initializeApp(firebaseConfig);
       window.auth = getAuth(app);
       window.db = getFirestore(app);
+      window.storage = getStorage(app);
     </script>
 
     <script type="module" src="Profile.js"></script>
@@ -37,7 +39,10 @@
         <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
     </a>
 
-
+    <form id="topNavSearchForm" action="Search.html" method="GET" class="nav-search-form">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" name="q" id="navSearchInput" placeholder="Search artwork, tags, or artists..." autocomplete="off">
+    </form>
 
     <div class="nav-links">
         <a href="Websitehtml.html" class="nav-icon-link" title="Home">
@@ -52,9 +57,19 @@
     </div>
 </div>
 
+<!-- FLOATING SETTINGS & CREATE POST STACK -->
+<div class="floating-settings-container">
+    <button id="openEditModalBtn" class="floating-settings-btn" title="User Settings">
+        <i class="fa-solid fa-gear"></i>
+    </button>
+    <button id="floatingCreatePostBtn" class="floating-create-btn" title="Create New Post">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+</div>
+
 <div class="layout" style="margin-top: 30px;">
     <div style="width: 100%; max-width: 800px; margin: 0 auto;">
-        <div class="Account-Container" style="margin-bottom: 20px;">
+        <div class="container-post" style="margin-bottom: 20px;">
             <h2 style="color: var(--text-main); font-size: 22px; margin-bottom: 12px;">Search Results</h2>
             <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                 <input type="text" id="pageSearchQuery" class="search-page-input" placeholder="Search posts, captions, artists...">
@@ -64,6 +79,108 @@
         </div>
 
         <div id="searchResultsContainer"></div>
+    </div>
+</div>
+
+<!-- MODERN DISCORD-STYLE SETTINGS MODAL -->
+<div id="editProfileModal" class="discord-modal-overlay">
+    <div class="discord-modal-container">
+        <button id="closeEditModalBtn" class="discord-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        
+        <!-- Sidebar Navigation Tabs -->
+        <div class="discord-modal-sidebar">
+            <span class="discord-sidebar-title">User Settings</span>
+            <button type="button" class="discord-nav-item active" onclick="switchDiscordTab('general', this)">
+                <i class="fa-solid fa-sliders"></i> General & Toggles
+            </button>
+            <button type="button" class="discord-nav-item" onclick="switchDiscordTab('profile', this)">
+                <i class="fa-solid fa-user-pen"></i> Profile Customization
+            </button>
+            <button type="button" class="discord-nav-item logout-tab" id="modalLogoutBtn">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="discord-modal-content-area">
+            
+            <!-- TAB 1: GENERAL & TOGGLES -->
+            <div id="tab-general" class="discord-tab-pane active">
+                <h3 class="discord-section-title">Preferences & Appearance</h3>
+                
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Light Mode Theme</h4>
+                        <p>Switch between dark and light glowing aesthetics.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="themeToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Artist Mode</h4>
+                        <p>Display an official Artist Badge on your published posts.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="artistToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row">
+                    <div class="discord-setting-info">
+                        <h4>Always Unblur NSFW</h4>
+                        <p>Automatically reveal 18+ sensitive artwork without clicking warnings.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="nsfwUnblurToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+
+                <div class="discord-setting-row" style="border-bottom: none;">
+                    <div class="discord-setting-info">
+                        <h4>Hide Hero Banner</h4>
+                        <p>Collapse the top banner header for a cleaner compact view.</p>
+                    </div>
+                    <label class="discord-switch">
+                        <input type="checkbox" id="hideHeroToggleCheckbox">
+                        <span class="discord-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TAB 2: PROFILE CUSTOMIZATION -->
+            <div id="tab-profile" class="discord-tab-pane">
+                <h3 class="discord-section-title">Profile Customization</h3>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Display Name Font Style</label>
+                    <select id="profileFontSelect" class="discord-select">
+                        <option value="system-ui, sans-serif">Standard Modern (Default)</option>
+                        <option value="'Courier New', Courier, monospace">Monospace / Code</option>
+                        <option value="'Georgia', serif">Classic Serif</option>
+                        <option value="'Impact', Charcoal, sans-serif">Bold Impact</option>
+                        <option value="'Brush Script MT', cursive">Cursive / Handwritten</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">About Me / Bio</label>
+                    <textarea id="profileBioInput" class="discord-input" placeholder="Write something about yourself and your art..." style="min-height: 120px; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action Bar -->
+        <div class="discord-modal-footer">
+            <button id="cancelEditBtn" type="button" class="btn-cancel">Cancel</button>
+            <button id="saveProfileBtn" type="button" class="btn-submit">Save Changes</button>
+        </div>
     </div>
 </div>
 
@@ -93,7 +210,28 @@
     </div>
 </div>
 
+<div id="logoutConfirmModal" class="modal">
+    <div class="modal-content" style="max-width: 360px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border: none; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 18px;">Log out of your account?</h3>
+        </div>
+        <p style="font-size: 14px; margin-bottom: 20px; color: var(--text-muted);">Are you sure you want to log out?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="cancelLogoutBtn" class="btn-cancel" style="flex: 1;">Cancel</button>
+            <button id="confirmLogoutBtn" class="btn-submit" style="flex: 1; background: #ff4d4d; color: #fff;">Log Out</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    function switchDiscordTab(tabName, btnElement) {
+        document.querySelectorAll('.discord-tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.querySelectorAll('.discord-nav-item').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        if (btnElement) btnElement.classList.add('active');
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
         const query = urlParams.get('q') || '';
@@ -110,6 +248,78 @@
                 const val = input.value.trim();
                 window.location.href = `Search.html?q=${encodeURIComponent(val)}`;
             };
+        }
+    });
+
+    const editModal = document.getElementById("editProfileModal");
+    const openEditBtn = document.getElementById("openEditModalBtn");
+    const closeEditBtn = document.getElementById("closeEditModalBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    if (openEditBtn && editModal) {
+        openEditBtn.onclick = (e) => { e.preventDefault(); editModal.style.display = "flex"; };
+    }
+    if (closeEditBtn && editModal) closeEditBtn.onclick = () => editModal.style.display = "none";
+    if (cancelEditBtn && editModal) cancelEditBtn.onclick = () => editModal.style.display = "none";
+
+    const modalLogoutBtn = document.getElementById("modalLogoutBtn");
+    const logoutModal = document.getElementById("logoutConfirmModal");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+    if (modalLogoutBtn && logoutModal) {
+        modalLogoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (editModal) editModal.style.display = "none";
+            logoutModal.style.display = "flex";
+        });
+    }
+
+    if (cancelLogoutBtn && logoutModal) {
+        cancelLogoutBtn.addEventListener("click", () => {
+            logoutModal.style.display = "none";
+        });
+    }
+
+    if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener("click", async () => {
+            try {
+                if (window.auth) {
+                    await window.auth.signOut();
+                }
+                localStorage.clear();
+                window.location.href = "index.html";
+            } catch (err) {
+                console.error("Logout error:", err);
+                localStorage.clear();
+                window.location.href = "index.html";
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const htmlRoot = document.documentElement;
+        const themeCheckbox = document.getElementById("themeToggleCheckbox");
+        const savedTheme = localStorage.getItem("themePreference") || "dark";
+        
+        if (savedTheme === "light") {
+            htmlRoot.setAttribute("data-theme", "light");
+            if (themeCheckbox) themeCheckbox.checked = true;
+        } else {
+            htmlRoot.setAttribute("data-theme", "dark");
+            if (themeCheckbox) themeCheckbox.checked = false;
+        }
+
+        if (themeCheckbox) {
+            themeCheckbox.addEventListener("change", () => {
+                if (themeCheckbox.checked) {
+                    htmlRoot.setAttribute("data-theme", "light");
+                    localStorage.setItem("themePreference", "light");
+                } else {
+                    htmlRoot.setAttribute("data-theme", "dark");
+                    localStorage.setItem("themePreference", "dark");
+                }
+            });
         }
     });
 </script>
