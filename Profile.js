@@ -58,10 +58,10 @@ async function uploadToDrive(file) {
 }
 
 function updateProfileImages(imageUrl) {
-  if (!imageUrl) return;
   const images = document.querySelectorAll(".profile-pic");
   images.forEach(img => {
-    img.src = imageUrl;
+    // Explicit fallback: if imageUrl is empty, null, or undefined, use the placeholder
+    img.src = imageUrl ? imageUrl : "Profile-Placeholder.png";
   });
 }
 
@@ -97,9 +97,8 @@ document.addEventListener("DOMContentLoaded", function() {
       el.textContent = `@${uname}`;
     });
 
-    if (user.imageUrl) {
-      updateProfileImages(user.imageUrl);
-    }
+    // Pass the image URL or empty string to correctly trigger the placeholder fallback
+    updateProfileImages(user.imageUrl);
 
     if (document.getElementById("profileBioInput")) {
       document.getElementById("profileBioInput").value = user.bio || "";
@@ -202,8 +201,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
-
-
 
   const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
   if (confirmLogoutBtn) {
