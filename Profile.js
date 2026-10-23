@@ -25,7 +25,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOZv7lbiB10OcXUgTOTssMkmECUJK5KsM4_iXLZevLxwbVO4jmcNtMFpGnbyskn5HDMg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOj93h99MIHba04PjHSbs8zjoJsdpAqOenqq0r2KpbuMEIUHK8l4vNfmUIee0uKyzfow/exec";
 
 async function uploadToDrive(file) {
   return new Promise((resolve, reject) => {
@@ -95,22 +95,22 @@ document.addEventListener("DOMContentLoaded", async function() {
   if (targetEmailParam || targetUidParam) {
     try {
       const usersRef = collection(db, "users");
-      let q;
-      if (targetEmailParam) {
-        q = query(usersRef, where("email", "==", targetEmailParam.toLowerCase().trim()));
-      } else {
-        q = query(usersRef, where("uid", "==", targetUidParam));
-      }
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        profileData = querySnapshot.docs[0].data();
-      }
+      const querySnapshot = await getDocs(usersRef);
+      querySnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const docEmail = data.email ? data.email.toLowerCase().trim() : "";
+        if (targetEmailParam && docEmail === targetEmailParam.toLowerCase().trim()) {
+          profileData = data;
+        } else if (targetUidParam && data.uid === targetUidParam) {
+          profileData = data;
+        }
+      });
     } catch (err) {
       console.error("Error fetching target profile:", err);
     }
   }
 
-  if (!profileData) {
+  if (!profileData && !targetEmailParam && !targetUidParam) {
     const storedUserStr = localStorage.getItem("userProfile");
     if (storedUserStr) {
       profileData = JSON.parse(storedUserStr);
@@ -125,6 +125,21 @@ document.addEventListener("DOMContentLoaded", async function() {
     const targetImg = document.getElementById("targetProfileImg");
     if (targetImg) {
       targetImg.src = profileData.imageUrl ? profileData.imageUrl : "Profile-Placeholder.png";
+    }
+
+    const bannerImg = document.getElementById("profileBannerImg") || document.getElementById("targetProfileBannerImg");
+    if (bannerImg) {
+      if (profileData.bannerUrl) {
+        bannerImg.src = profileData.bannerUrl;
+        bannerImg.style.display = "block";
+      } else {
+        bannerImg.style.display = "none";
+      }
+    }
+
+    const bannerInput = document.getElementById("profileBannerInput");
+    if (bannerInput) {
+      bannerInput.value = profileData.bannerUrl || "";
     }
 
     const targetName = document.getElementById("targetProfileName");
@@ -214,6 +229,7 @@ document.addEventListener("DOMContentLoaded", async function() {
       }
 
       const bioText = document.getElementById("profileBioInput").value.trim();
+      const bannerUrlVal = document.getElementById("profileBannerInput")?.value.trim() || "";
       const isArtistStatus = document.getElementById("artistToggleCheckbox").checked;
       const unblurNsfwStatus = document.getElementById("nsfwUnblurToggleCheckbox")?.checked || false;
       const hideHeroStatus = document.getElementById("hideHeroToggleCheckbox")?.checked || false;
@@ -226,6 +242,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         const userRef = doc(db, "users", currentUser.uid);
         await updateDoc(userRef, {
           bio: bioText,
+          bannerUrl: bannerUrlVal,
           isArtist: isArtistStatus,
           unblurNsfw: unblurNsfwStatus,
           hideHero: hideHeroStatus,
@@ -233,6 +250,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
 
         currentUser.bio = bioText;
+        currentUser.bannerUrl = bannerUrlVal;
         currentUser.isArtist = isArtistStatus;
         currentUser.unblurNsfw = unblurNsfwStatus;
         currentUser.hideHero = hideHeroStatus;
@@ -253,6 +271,16 @@ document.addEventListener("DOMContentLoaded", async function() {
         const bioDisplay = document.getElementById("prof-bio-display");
         if (bioDisplay) {
           bioDisplay.innerHTML = formatBioText(bioText);
+        }
+
+        const bannerImg = document.getElementById("profileBannerImg") || document.getElementById("targetProfileBannerImg");
+        if (bannerImg) {
+          if (bannerUrlVal) {
+            bannerImg.src = bannerUrlVal;
+            bannerImg.style.display = "block";
+          } else {
+            bannerImg.style.display = "none";
+          }
         }
 
         document.getElementById("editProfileModal").style.display = "none";
@@ -297,13 +325,55 @@ document.addEventListener("DOMContentLoaded", async function() {
     if (menu) menu.classList.remove("show");
   });
 
+  // CLEAN POPUP LIGHTBOX FOR PROFILE PHOTO (SINGLE CENTERED IMAGE)
   if (viewProfileBtn && profileImg) {
     viewProfileBtn.addEventListener("click", function(e) {
       e.preventDefault();
-      window.open(profileImg.src, "_blank");
+      
+      const modal = document.getElementById("igPostDetailModal");
+      const modalImg = document.getElementById("igModalImg");
+      const modalRight = modal ? modal.querySelector(".ig-modal-right") : null;
+      const modalContainer = modal ? modal.querySelector(".ig-modal-container") : null;
+
+      if (modal && modalImg) {
+        modalImg.src = profileImg.src;
+        
+        if (modalRight) {
+          modalRight.style.display = "none";
+        }
+
+        if (modalContainer) {
+          modalContainer.style.maxWidth = "550px";
+          modalContainer.style.height = "auto";
+          modalContainer.style.maxHeight = "85vh";
+        }
+
+        modal.style.display = "flex";
+      } else {
+        window.open(profileImg.src, "_blank");
+      }
     });
   }
 });
+
+// RESTORE MODAL LAYOUT WHEN CLOSING
+window.closeIgModal = function() {
+  const modal = document.getElementById("igPostDetailModal");
+  if (modal) {
+    modal.style.display = "none";
+    const modalRight = modal.querySelector(".ig-modal-right");
+    const modalContainer = modal.querySelector(".ig-modal-container");
+    
+    if (modalRight) {
+      modalRight.style.display = "flex";
+    }
+    if (modalContainer) {
+      modalContainer.style.maxWidth = "1050px";
+      modalContainer.style.height = "85vh";
+      modalContainer.style.maxHeight = "750px";
+    }
+  }
+};
 
 async function handleImageUpload(file) {
   const storedUser = JSON.parse(localStorage.getItem("userProfile") || "{}");
@@ -314,11 +384,24 @@ async function handleImageUpload(file) {
   const uploadBtn = document.getElementById("uploadBtn");
   if (uploadBtn) uploadBtn.textContent = "Uploading...";
 
+  const oldImageUrl = storedUser.imageUrl;
+
   try {
     const downloadURL = await uploadToDrive(file);
 
     const userRef = doc(db, "users", storedUser.uid);
     await updateDoc(userRef, { imageUrl: downloadURL });
+
+    if (oldImageUrl && !oldImageUrl.includes("Profile-Placeholder.png")) {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete", url: oldImageUrl })
+        });
+      } catch (delErr) {
+        console.warn("Could not delete old profile picture from Drive:", delErr);
+      }
+    }
 
     const currentUserEmail = (storedUser.email || localStorage.getItem("userEmail") || "").toLowerCase().trim();
     const postsRef = collection(db, "posts");

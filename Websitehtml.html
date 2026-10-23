@@ -143,12 +143,15 @@
                         <img id="imagePreview" src="" alt="Artwork Preview">
                     </div>
 
-                    <div class="add-to-post-bar">
+            <div class="add-to-post-bar">
                         <span>Add to your post</span>
-                        <label for="modalImageInput" class="add-media-btn" title="Add Photo">
-                            <i class="fa-solid fa-image"></i>
-                            <input type="file" id="modalImageInput" accept="image/*" hidden>
-                        </label>
+                        <div style="display: flex; gap: 10px; align-items: center; position: relative;">
+                            <button type="button" class="emoji-trigger-btn" onclick="toggleEmojiPicker('modalContent')" title="Add Emoji">😊</button>
+                            <label for="modalImageInput" class="add-media-btn" title="Add Photos">
+                                <i class="fa-solid fa-image"></i>
+                                <input type="file" id="modalImageInput" accept="image/*" multiple hidden>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -323,8 +326,10 @@
                     </button>
                     <span id="igModalLikesCount" style="font-size: 13px; font-weight: bold; color: var(--text-main);">0 likes</span>
                 </div>
-                <div class="comment-box-container" style="margin-top:0;">
+                <div class="comment-box-container" style="margin-top:0; position:relative;">
+                    
                     <input type="text" id="igModalCommentInput" placeholder="Add a comment...">
+                    <button type="button" class="emoji-trigger-btn fa-solid fa-face-smile" onclick="toggleEmojiPicker('igModalCommentInput')" title="Insert Emoji"></button>
                     <button type="button" id="igModalSubmitCommentBtn">Post</button>
                 </div>
             </div>

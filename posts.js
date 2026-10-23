@@ -22,7 +22,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOZv7lbiB10OcXUgTOTssMkmECUJK5KsM4_iXLZevLxwbVO4jmcNtMFpGnbyskn5HDMg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOj93h99MIHba04PjHSbs8zjoJsdpAqOenqq0r2KpbuMEIUHK8l4vNfmUIee0uKyzfow/exec";
 
 async function uploadToDrive(file) {
   return new Promise((resolve, reject) => {
@@ -41,11 +41,18 @@ async function uploadToDrive(file) {
           body: JSON.stringify(payload)
         });
 
-        const result = await response.json();
-        if (result.status === "success") {
-          resolve(result.url);
-        } else {
-          reject(new Error(result.message));
+        const rawText = await response.text();
+        
+        try {
+          const result = JSON.parse(rawText);
+          if (result.status === "success") {
+            resolve(result.url);
+          } else {
+            reject(new Error(result.message));
+          }
+        } catch (parseErr) {
+          console.error("Non-JSON server response:", rawText);
+          reject(new Error("Server returned HTML or invalid data instead of JSON. Check console logs."));
         }
       } catch (err) {
         reject(err);
@@ -59,13 +66,33 @@ let globalPosts = [];
 let globalUsers = [];
 let activeFilters = { category: "All", postType: "All" };
 let currentActiveTab = "posts";
+let selectedPostFiles = [];
 
-function formatBioText(text) {
-  if (!text) return "No bio yet.";
+function formatFormattedText(text) {
+  if (!text) return "";
+  const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.replace(urlRegex, (url) => {
-    return `<a href="${url}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">${url}</a>`;
-  });
+  const linked = escaped.replace(urlRegex, (url) => `<a href="${url}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">${url}</a>`);
+  return linked.replace(/\n/g, "<br>");
+}
+
+function timeAgo(dateOrTimestamp) {
+  if (!dateOrTimestamp) return "";
+  let time;
+  if (typeof dateOrTimestamp === "string") {
+    time = new Date(dateOrTimestamp).getTime();
+  } else if (dateOrTimestamp.seconds) {
+    time = dateOrTimestamp.seconds * 1000;
+  } else {
+    time = new Date(dateOrTimestamp).getTime();
+  }
+
+  const diff = Math.floor((Date.now() - time) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(time).toLocaleDateString();
 }
 
 document.addEventListener("DOMContentLoaded", async function() {
@@ -79,8 +106,6 @@ document.addEventListener("DOMContentLoaded", async function() {
   const submitBtn = document.getElementById("submitModalPostBtn");
   const fileInput = document.getElementById("modalImageInput");
   const previewContainer = document.getElementById("imagePreviewContainer");
-  const previewImg = document.getElementById("imagePreview");
-  const removePreviewBtn = document.getElementById("removePreviewImgBtn");
   const postTypeSelect = document.getElementById("modalPostType");
   const contactGroup = document.getElementById("contactLinkGroup");
 
@@ -119,24 +144,11 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   if (fileInput) {
     fileInput.addEventListener("change", function() {
-      const file = this.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          if (previewImg) previewImg.src = e.target.result;
-          if (previewContainer) previewContainer.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      }
+      const newFiles = Array.from(this.files);
+      selectedPostFiles = selectedPostFiles.concat(newFiles);
+      renderModalFilePreviews();
+      this.value = "";
     });
-  }
-
-  if (removePreviewBtn) {
-    removePreviewBtn.onclick = () => {
-      if (fileInput) fileInput.value = "";
-      if (previewImg) previewImg.src = "";
-      if (previewContainer) previewContainer.style.display = "none";
-    };
   }
 
   if (submitBtn) {
@@ -146,11 +158,10 @@ document.addEventListener("DOMContentLoaded", async function() {
       const postType = document.getElementById("modalPostType").value;
       const rating = document.getElementById("modalNsfwRating")?.value || "SFW";
       const contactLink = document.getElementById("modalContactLink")?.value.trim() || "";
-      const file = fileInput ? fileInput.files[0] : null;
       const userEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
 
-      if (!content && !file) {
-        alert("Please add text or select an image.");
+      if (!content && selectedPostFiles.length === 0) {
+        alert("Please add text or select at least one image.");
         return;
       }
 
@@ -163,10 +174,13 @@ document.addEventListener("DOMContentLoaded", async function() {
       submitBtn.disabled = true;
 
       try {
-        let postImageUrl = "";
-        if (file) {
-          submitBtn.innerText = "Uploading to Drive...";
-          postImageUrl = await uploadToDrive(file);
+        let uploadedImageUrls = [];
+        if (selectedPostFiles.length > 0) {
+          for (let i = 0; i < selectedPostFiles.length; i++) {
+            submitBtn.innerText = `Uploading Image ${i + 1}/${selectedPostFiles.length}...`;
+            const url = await uploadToDrive(selectedPostFiles[i]);
+            uploadedImageUrls.push(url);
+          }
         }
 
         await addDoc(collection(db, "posts"), {
@@ -177,7 +191,8 @@ document.addEventListener("DOMContentLoaded", async function() {
           bio: storedUser.bio || "",
           nameFont: storedUser.nameFont || "system-ui, sans-serif",
           content: content,
-          postImageUrl: postImageUrl,
+          postImageUrls: uploadedImageUrls,
+          postImageUrl: uploadedImageUrls[0] || "",
           category: category,
           postType: postType,
           rating: rating,
@@ -204,10 +219,136 @@ document.addEventListener("DOMContentLoaded", async function() {
     if (document.getElementById("modalContent")) document.getElementById("modalContent").value = "";
     if (document.getElementById("modalContactLink")) document.getElementById("modalContactLink").value = "";
     if (fileInput) fileInput.value = "";
-    if (previewImg) previewImg.src = "";
-    if (previewContainer) previewContainer.style.display = "none";
+    selectedPostFiles = [];
+    if (previewContainer) {
+      previewContainer.innerHTML = "";
+      previewContainer.style.display = "none";
+    }
   }
 });
+
+function renderModalFilePreviews() {
+  const previewContainer = document.getElementById("imagePreviewContainer");
+  if (!previewContainer) return;
+  previewContainer.innerHTML = "";
+
+  if (selectedPostFiles.length === 0) {
+    previewContainer.style.display = "none";
+    return;
+  }
+
+  previewContainer.style.display = "flex";
+  previewContainer.style.gap = "8px";
+  previewContainer.style.overflowX = "auto";
+  previewContainer.style.padding = "8px";
+  previewContainer.style.alignItems = "center";
+
+  selectedPostFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.flexShrink = "0";
+
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      img.style.width = "80px";
+      img.style.height = "80px";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "8px";
+      img.style.border = "1px solid var(--border-color)";
+
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "&times;";
+      removeBtn.type = "button";
+      removeBtn.className = "remove-preview-btn";
+      removeBtn.style.cssText = "position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10;";
+      removeBtn.onclick = () => {
+        selectedPostFiles.splice(index, 1);
+        renderModalFilePreviews();
+      };
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(removeBtn);
+      previewContainer.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+window.toggleEmojiPicker = function(inputId) {
+  let existing = document.getElementById("emojiPickerPopup");
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const emojis = ["😀", "😂", "😍", "🔥", "❤️", "👍", "🎉", "😢", "✨", "🙏", "😎", "😭", "💯", "🤔", "👏"];
+  const popup = document.createElement("div");
+  popup.id = "emojiPickerPopup";
+  popup.style.cssText = "position:absolute; bottom:45px; right:0; background:var(--bg-container); border:1px solid var(--border-color); border-radius:12px; padding:10px; display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; z-index:99999; box-shadow:0 8px 24px rgba(0,0,0,0.5);";
+
+  emojis.forEach(emo => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = emo;
+    btn.style.cssText = "background:none; border:none; font-size:20px; cursor:pointer; padding:4px; border-radius:4px;";
+    btn.onmouseover = () => btn.style.background = "var(--input-bg)";
+    btn.onmouseout = () => btn.style.background = "none";
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      insertEmoji(inputId, emo);
+      popup.remove();
+    };
+    popup.appendChild(btn);
+  });
+
+  const inputElem = document.getElementById(inputId);
+  if (!inputElem) return;
+  const container = inputElem.closest(".comment-box-container") || inputElem.closest(".post-modal-body") || inputElem.parentElement;
+  if (container) {
+    container.style.position = "relative";
+    container.appendChild(popup);
+  }
+
+  const closeListener = (evt) => {
+    if (!popup.contains(evt.target) && evt.target.id !== inputId && !evt.target.classList.contains("emoji-trigger-btn")) {
+      popup.remove();
+      document.removeEventListener("click", closeListener);
+    }
+  };
+  setTimeout(() => document.addEventListener("click", closeListener), 10);
+};
+
+window.insertEmoji = function(elementId, emoji) {
+  const input = document.getElementById(elementId);
+  if (!input) return;
+  const start = input.selectionStart || input.value.length;
+  const end = input.selectionEnd || input.value.length;
+  input.value = input.value.substring(0, start) + emoji + input.value.substring(end);
+  input.focus();
+  input.setSelectionRange(start + emoji.length, start + emoji.length);
+};
+
+window.navigateCarousel = function(postId, direction) {
+  const container = document.getElementById(`carousel-${postId}`);
+  if (!container) return;
+  const images = container.querySelectorAll(".carousel-img");
+  let activeIndex = 0;
+  images.forEach((img, idx) => {
+    if (img.classList.contains("active")) activeIndex = idx;
+  });
+
+  images[activeIndex].classList.remove("active");
+  let nextIndex = activeIndex + direction;
+  if (nextIndex < 0) nextIndex = images.length - 1;
+  if (nextIndex >= images.length) nextIndex = 0;
+
+  images[nextIndex].classList.add("active");
+  
+  const counter = document.getElementById(`carousel-counter-${postId}`);
+  if (counter) counter.textContent = `${nextIndex + 1}/${images.length}`;
+};
 
 async function fetchAllUsers() {
   try {
@@ -293,6 +434,95 @@ function updateProfileHeaderCounts() {
   if (followersCountElem) followersCountElem.textContent = followersList.length;
 }
 
+let currentFollowListType = 'followers';
+let cachedFollowUsers = [];
+
+window.openFollowModal = async function(type) {
+  currentFollowListType = type;
+  const modal = document.getElementById("followListModal");
+  const title = document.getElementById("followModalTitle");
+  if (!modal || !title) return;
+
+  title.textContent = type === 'followers' ? 'Followers' : 'Following';
+  modal.style.display = "flex";
+  await renderFollowListItems();
+};
+
+window.closeFollowModal = function() {
+  const modal = document.getElementById("followListModal");
+  if (modal) modal.style.display = "none";
+};
+
+window.filterFollowList = function(keyword) {
+  const container = document.getElementById("followListContainer");
+  if (!container) return;
+  const q = keyword.toLowerCase().trim();
+  const filtered = cachedFollowUsers.filter(u => 
+    (u.fullname && u.fullname.toLowerCase().includes(q)) || 
+    (u.email && u.email.toLowerCase().includes(q))
+  );
+  renderFollowListHtml(filtered, container);
+};
+
+async function renderFollowListItems() {
+  const container = document.getElementById("followListContainer");
+  if (!container) return;
+  container.innerHTML = "<p style='text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;'>Loading...</p>";
+
+  const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
+  const currentUserDoc = globalUsers.find(u => u.email === currentUserEmail) || {};
+  
+  let targetEmails = [];
+  if (currentFollowListType === 'followers') {
+    targetEmails = globalUsers.filter(u => u.following && u.following.includes(currentUserEmail)).map(u => u.email);
+  } else {
+    targetEmails = currentUserDoc.following || [];
+  }
+
+  cachedFollowUsers = globalUsers.filter(u => targetEmails.includes(u.email));
+  renderFollowListHtml(cachedFollowUsers, container);
+}
+
+function renderFollowListHtml(users, container) {
+  container.innerHTML = "";
+  if (users.length === 0) {
+    container.innerHTML = "<p style='text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;'>No users found.</p>";
+    return;
+  }
+
+  const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
+  const currentUserDoc = globalUsers.find(u => u.email === currentUserEmail) || {};
+  const followingList = currentUserDoc.following || [];
+
+  users.forEach(user => {
+    const isSelf = user.email === currentUserEmail;
+    const isFollowing = followingList.includes(user.email);
+    const avatar = user.imageUrl || "Profile-Placeholder.png";
+    const uname = user.email.split("@")[0];
+
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 8px; border-radius:8px;";
+    row.onmouseover = () => row.style.background = "var(--input-bg)";
+    row.onmouseout = () => row.style.background = "transparent";
+
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='UserProfile.html?email=${encodeURIComponent(user.email)}'">
+        <img src="${avatar}" style="width:38px; height:38px; border-radius:50%; object-fit:cover;">
+        <div>
+          <h4 style="font-size:13px; color:var(--text-main); margin:0;">${user.fullname || 'User'}</h4>
+          <span style="font-size:11px; color:var(--text-muted);">@${uname}</span>
+        </div>
+      </div>
+      ${!isSelf ? `
+        <button type="button" class="follow-btn ${isFollowing ? 'following' : ''}" onclick="toggleFollowUser('${user.email}'); setTimeout(() => openFollowModal('${currentFollowListType}'), 300);" style="padding:4px 12px; font-size:11px;">
+          ${isFollowing ? 'Following' : '+ Follow'}
+        </button>
+      ` : ''}
+    `;
+    container.appendChild(row);
+  });
+}
+
 function renderTargetUserProfile(targetEmail) {
   targetEmail = targetEmail.toLowerCase().trim();
   const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
@@ -336,7 +566,7 @@ function renderTargetUserProfile(targetEmail) {
     }
 
     if (profileBioElem) {
-      profileBioElem.innerHTML = formatBioText(bioText);
+      profileBioElem.innerHTML = formatFormattedText(bioText);
     }
 
     if (postsCountElem) {
@@ -464,7 +694,7 @@ function applyFiltersAndRender() {
     if (currentActiveTab === "posts") {
       postsToProcess = globalPosts.filter(p => p.email === currentUserEmail);
     } else if (currentActiveTab === "gallery") {
-      const galleryPosts = globalPosts.filter(p => p.email === currentUserEmail && p.postImageUrl);
+      const galleryPosts = globalPosts.filter(p => (p.email === currentUserEmail) && ((p.postImageUrls && p.postImageUrls.length > 0) || p.postImageUrl));
       renderGalleryGrid(galleryPosts);
       return;
     } else if (currentActiveTab === "liked") {
@@ -509,6 +739,7 @@ function renderFeedInContainer(posts, container) {
     
     const isNsfw = post.rating === "NSFW";
     const nsfwBadge = isNsfw ? `<span class="nsfw-badge">NSFW 18+</span>` : "";
+    const timeAgoText = timeAgo(post.createdAt);
 
     let followBtnHtml = "";
     if (!isUserTheAuthor) {
@@ -531,24 +762,51 @@ function renderFeedInContainer(posts, container) {
       </div>
     ` : "";
 
-    let postImgTag = "";
-    if (post.postImageUrl) {
+    let mediaContainerHtml = "";
+    const imagesList = (post.postImageUrls && post.postImageUrls.length > 0) ? post.postImageUrls : (post.postImageUrl ? [post.postImageUrl] : []);
+
+    if (imagesList.length > 0) {
       const storedUser = JSON.parse(localStorage.getItem("userProfile") || "{}");
       const autoUnblur = storedUser.unblurNsfw || false;
       const shouldBlur = isNsfw && !autoUnblur;
 
-      postImgTag = `
-        <div class="post-image-container-relative" id="img-wrapper-${post.postId}">
-          <img src="${post.postImageUrl}" class="post-image ${shouldBlur ? 'blurred-nsfw-img' : ''}" id="img-elem-${post.postId}" onclick="openIgModal('${post.postId}')" style="cursor: pointer;">
-          ${shouldBlur ? `
-            <div class="nsfw-overlay-warning" id="nsfw-overlay-${post.postId}" onclick="unblurSingleImage('${post.postId}')">
-              <i class="fa-solid fa-eye-slash"></i>
-              <span>Sensitive Content (18+)</span>
-              <small style="margin-top:4px; opacity:0.8;">Click to reveal artwork</small>
-            </div>
-          ` : ''}
-        </div>
-      `;
+      if (imagesList.length === 1) {
+        mediaContainerHtml = `
+          <div class="post-image-container-relative" id="img-wrapper-${post.postId}">
+            <img src="${imagesList[0]}" class="post-image ${shouldBlur ? 'blurred-nsfw-img' : ''}" id="img-elem-${post.postId}" onclick="openIgModal('${post.postId}')" style="cursor: pointer;">
+            ${shouldBlur ? `
+              <div class="nsfw-overlay-warning" id="nsfw-overlay-${post.postId}" onclick="unblurSingleImage('${post.postId}')">
+                <i class="fa-solid fa-eye-slash"></i>
+                <span>Sensitive Content (18+)</span>
+                <small style="margin-top:4px; opacity:0.8;">Click to reveal artwork</small>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        let slidesHtml = "";
+        imagesList.forEach((url, idx) => {
+          slidesHtml += `
+            <img src="${url}" class="post-image carousel-img ${idx === 0 ? 'active' : ''} ${shouldBlur ? 'blurred-nsfw-img' : ''}" onclick="openIgModal('${post.postId}')" style="cursor: pointer;">
+          `;
+        });
+
+        mediaContainerHtml = `
+          <div class="post-carousel-wrapper" id="carousel-${post.postId}">
+            ${slidesHtml}
+            <button type="button" class="carousel-btn prev-btn" onclick="navigateCarousel('${post.postId}', -1)">&lt;</button>
+            <button type="button" class="carousel-btn next-btn" onclick="navigateCarousel('${post.postId}', 1)">&gt;</button>
+            <span class="carousel-counter" id="carousel-counter-${post.postId}">1/${imagesList.length}</span>
+            ${shouldBlur ? `
+              <div class="nsfw-overlay-warning" id="nsfw-overlay-${post.postId}" onclick="unblurSingleImage('${post.postId}')">
+                <i class="fa-solid fa-eye-slash"></i>
+                <span>Sensitive Content (18+)</span>
+                <small style="margin-top:4px; opacity:0.8;">Click to reveal artwork</small>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
     }
 
     let actionBtn = "";
@@ -583,13 +841,13 @@ function renderFeedInContainer(posts, container) {
             ${isArtistBadge}
             ${nsfwBadge}
           </h4>
-          <span style="font-size:11px; color:var(--text-muted);">${post.category} • ${post.postType}</span>
+          <span style="font-size:11px; color:var(--text-muted);">${post.category} • ${post.postType} ${timeAgoText ? '• ' + timeAgoText : ''}</span>
         </div>
         ${followBtnHtml}
         ${deletePostOption}
       </div>
-      <p class="post-text">${post.content}</p>
-      ${postImgTag}
+      <p class="post-text">${formatFormattedText(post.content)}</p>
+      ${mediaContainerHtml}
       ${actionBtn}
       
       <div class="post-actions-bar" style="display:flex; gap:16px; margin-top:12px; align-items:center;">
@@ -624,13 +882,27 @@ function renderGalleryGrid(posts) {
   }
 
   let gridHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;">`;
+  
   posts.forEach(post => {
+    const imagesList = (post.postImageUrls && post.postImageUrls.length > 0) 
+      ? post.postImageUrls 
+      : (post.postImageUrl ? [post.postImageUrl] : []);
+      
+    const thumbUrl = imagesList[0] || "Profile-Placeholder.png";
+    const isMultiImage = imagesList.length > 1;
+
     gridHtml += `
-      <div style="aspect-ratio: 1/1; overflow: hidden; border-radius: 8px; cursor: pointer;" onclick="openIgModal('${post.postId}')">
-        <img src="${post.postImageUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Artwork Grid">
+      <div class="gallery-item-wrapper" onclick="openIgModal('${post.postId}')">
+        <img src="${thumbUrl}" alt="Gallery Artwork">
+        ${isMultiImage ? `
+          <div class="gallery-multi-badge" title="${imagesList.length} images">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+        ` : ''}
       </div>
     `;
   });
+
   gridHtml += `</div>`;
   feedContainer.innerHTML = gridHtml;
 }
@@ -642,10 +914,14 @@ function renderCommentTree(comments, postId, postOwnerEmail, currentUserEmail, d
     const avatar = (c.imageUrl && c.imageUrl !== "") ? c.imageUrl : defaultAvatar;
     const canDelete = (currentUserEmail === postOwnerEmail) || (currentUserEmail === c.email);
     const commentId = c.commentId || index;
+    const likes = c.likes || [];
+    const isLiked = likes.includes(currentUserEmail);
+    const likeCount = likes.length;
+    const agoText = timeAgo(c.timestamp);
 
     const deleteOptionHtml = canDelete ? `
-      <div class="comment-options-wrapper" style="position:relative;">
-        <button type="button" class="comment-options-btn" onclick="toggleCommentMenu(event, '${postId}', '${commentId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;">
+      <div class="comment-options-wrapper" style="position:relative; display:inline-block; margin-left:6px;">
+        <button type="button" class="comment-options-btn" onclick="toggleCommentMenu(event, '${postId}', '${commentId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px;">
           <i class="fa-solid fa-ellipsis"></i>
         </button>
         <div id="menu-${postId}-${commentId}" class="comment-dropdown-menu">
@@ -655,19 +931,66 @@ function renderCommentTree(comments, postId, postOwnerEmail, currentUserEmail, d
     ` : "";
 
     return `
-      <div class="comment-thread" data-comment-id="${commentId}" style="margin-bottom: 12px; display:flex; gap:10px; align-items:flex-start;">
-        <img src="${avatar}" class="comment-avatar" alt="${c.fullname}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-        <div class="comment-bubble" style="flex:1; background:var(--input-bg); padding:8px 12px; border-radius:12px;">
-          <div class="comment-header-row" style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="comment-author" style="font-weight:bold; color:var(--text-main); font-size:12px;">${c.fullname}</span>
+      <div class="comment-thread" data-comment-id="${commentId}" style="margin-bottom: 14px; display:flex; gap:12px; align-items:flex-start; width:100%;">
+        <img src="${avatar}" class="comment-avatar" alt="${c.fullname}" style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:50%; object-fit:cover;">
+        
+        <div style="flex:1; display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:6px;">
+            <span style="font-weight:600; color:var(--text-main); font-size:13px;">${c.fullname}</span>
+            <span style="font-size:13px; color:var(--text-main); word-break:break-word;">${formatFormattedText(c.comment)}</span>
+          </div>
+          <div style="display:flex; gap:12px; font-size:11px; color:var(--text-muted); margin-top:4px; align-items:center;">
+            <span>${agoText}</span>
+            <button type="button" class="comment-action-link" onclick="replyToUser('${c.fullname}')">Reply</button>
             ${deleteOptionHtml}
           </div>
-          <p style="margin: 4px 0; font-size: 13px; color: var(--text-main);">${c.comment}</p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-left:8px; flex-shrink:0;">
+          <button type="button" onclick="toggleCommentLike('${postId}', '${commentId}')" style="background:none; border:none; cursor:pointer; color:${isLiked ? '#ff4d4d' : 'var(--text-muted)'}; font-size:14px; padding:4px; transition:transform 0.15s ease;">
+            <i class="${isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+          </button>
+          ${likeCount > 0 ? `<span style="font-size:10px; color:var(--text-muted);">${likeCount}</span>` : ''}
         </div>
       </div>
     `;
   }).join("");
 }
+
+window.replyToUser = function(username) {
+  const input = document.getElementById("igModalCommentInput");
+  if (input) {
+    input.value = `@${username} `;
+    input.focus();
+  }
+};
+
+window.toggleCommentLike = async function(postId, commentId) {
+  const currentUserEmail = (localStorage.getItem("userEmail") || "").toLowerCase().trim();
+  if (!currentUserEmail) return;
+
+  const post = globalPosts.find(p => p.postId === postId);
+  if (!post || !post.comments) return;
+
+  const comment = post.comments.find(c => c.commentId === commentId);
+  if (!comment) return;
+
+  if (!comment.likes) comment.likes = [];
+  const idx = comment.likes.indexOf(currentUserEmail);
+  if (idx > -1) {
+    comment.likes.splice(idx, 1);
+  } else {
+    comment.likes.push(currentUserEmail);
+  }
+
+  try {
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, { comments: post.comments });
+    openIgModal(postId);
+  } catch (err) {
+    console.error("Error toggling comment like:", err);
+  }
+};
 
 window.toggleCommentMenu = function(event, postId, commentId) {
   event.stopPropagation();
@@ -723,11 +1046,19 @@ window.deletePost = async function(postId) {
   if (!post) return;
 
   try {
-    if (post.postImageUrl) {
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "delete", url: post.postImageUrl })
-      });
+    const imagesToDelete = (post.postImageUrls && post.postImageUrls.length > 0) 
+      ? post.postImageUrls 
+      : (post.postImageUrl ? [post.postImageUrl] : []);
+
+    for (const url of imagesToDelete) {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete", url: url })
+        });
+      } catch (imgErr) {
+        console.warn("Could not delete image from Drive:", imgErr);
+      }
     }
 
     await deleteDoc(doc(db, "posts", postId));
@@ -769,6 +1100,7 @@ window.openIgModal = function(postId) {
   if (!modal) return;
   const modalContainer = modal.querySelector(".ig-modal-container");
   const modalImg = document.getElementById("igModalImg");
+  const modalLeft = modal.querySelector(".ig-modal-left");
   const modalHeader = document.getElementById("igModalHeader");
   const commentsBody = document.getElementById("igModalCommentsBody");
   const likeBtn = document.getElementById("igModalLikeBtn");
@@ -783,11 +1115,23 @@ window.openIgModal = function(postId) {
   const isUserTheAuthor = post.email === currentUserEmail;
   const profileTargetLink = isUserTheAuthor ? "AccountProfile.html" : `UserProfile.html?email=${encodeURIComponent(post.email)}`;
 
-  if (post.postImageUrl && post.postImageUrl !== "") {
-    modalImg.src = post.postImageUrl;
+  const imagesList = (post.postImageUrls && post.postImageUrls.length > 0) ? post.postImageUrls : (post.postImageUrl ? [post.postImageUrl] : []);
+
+  if (imagesList.length > 0) {
     modalContainer.classList.remove("no-image");
+    if (modalLeft) {
+      modalLeft.innerHTML = `
+        <div class="post-carousel-wrapper" id="carousel-modal-${post.postId}" style="width:100%; height:100%;">
+          ${imagesList.map((url, idx) => `<img src="${url}" class="carousel-img ${idx === 0 ? 'active' : ''}" style="width:100%; height:100%; object-fit:contain;">`).join('')}
+          ${imagesList.length > 1 ? `
+            <button type="button" class="carousel-btn prev-btn" onclick="navigateCarousel('modal-${post.postId}', -1)">&lt;</button>
+            <button type="button" class="carousel-btn next-btn" onclick="navigateCarousel('modal-${post.postId}', 1)">&gt;</button>
+            <span class="carousel-counter" id="carousel-counter-modal-${post.postId}">1/${imagesList.length}</span>
+          ` : ''}
+        </div>
+      `;
+    }
   } else {
-    modalImg.src = "";
     modalContainer.classList.add("no-image");
   }
 
@@ -837,11 +1181,11 @@ window.openIgModal = function(postId) {
   }
 
   let commentsHtml = `
-    <div style="display:flex; gap:10px; align-items:flex-start; padding-bottom:12px; border-bottom:1px solid var(--border-color);">
-      <img src="${avatarSrc}" class="comment-avatar" alt="${post.fullname}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-      <div style="font-size:13px; color:var(--text-main);">
+    <div style="display:flex; gap:12px; align-items:flex-start; padding-bottom:12px; border-bottom:1px solid var(--border-color); width:100%;">
+      <img src="${avatarSrc}" class="comment-avatar" alt="${post.fullname}" style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:50%; object-fit:cover;">
+      <div style="font-size:13px; color:var(--text-main); flex:1; word-break:break-word;">
         <strong style="margin-right:6px;"><a href="${profileTargetLink}" ${nameFontStyle}>${post.fullname}</a></strong>
-        ${post.content}
+        ${formatFormattedText(post.content)}
       </div>
     </div>
   `;
@@ -864,7 +1208,8 @@ window.openIgModal = function(postId) {
         fullname: storedUser.fullname || "User",
         imageUrl: storedUser.imageUrl || "",
         comment: text,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        likes: []
       };
 
       if (!post.comments) post.comments = [];
@@ -885,6 +1230,37 @@ window.openIgModal = function(postId) {
   }
 
   modal.style.display = "flex";
+};
+
+window.openTargetFollowModal = async function(type) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetEmail = urlParams.get('email');
+  if (!targetEmail) return;
+
+  currentFollowListType = type;
+  const modal = document.getElementById("followListModal");
+  const title = document.getElementById("followModalTitle");
+  if (!modal || !title) return;
+
+  title.textContent = type === 'followers' ? 'Followers' : 'Following';
+  modal.style.display = "flex";
+
+  const container = document.getElementById("followListContainer");
+  if (!container) return;
+  container.innerHTML = "<p style='text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;'>Loading...</p>";
+
+  const cleanEmail = targetEmail.toLowerCase().trim();
+  const targetUserObj = globalUsers.find(u => u.email === cleanEmail) || {};
+  
+  let targetEmails = [];
+  if (type === 'followers') {
+    targetEmails = globalUsers.filter(u => u.following && u.following.includes(cleanEmail)).map(u => u.email);
+  } else {
+    targetEmails = targetUserObj.following || [];
+  }
+
+  cachedFollowUsers = globalUsers.filter(u => targetEmails.includes(u.email));
+  renderFollowListHtml(cachedFollowUsers, container);
 };
 
 window.closeIgModal = function() {

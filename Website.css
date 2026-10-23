@@ -22,9 +22,9 @@
     --navbar-bg: #ffffff;
     --text-main: #1f1f24;
     --text-muted: #47474e;
-    --border-color: #dcdce2;
+    --border-color: #bdbaba;
     --accent-color: #00785e;
-    --accent-hover: #007056;
+    --accent-hover: #03372b;
     --accent-text: #ffffff;
     --input-bg: #eaeaf0;
     --modal-bg: #ffffff;
@@ -1278,4 +1278,112 @@ img.post-image {
 
 .fa-spinner {
     animation: spin 0.8s linear infinite;
+}
+/* Carousel & Image Styles (Zoom Out / Object-Fit Contain) */
+.post-image-container-relative,
+.post-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    max-height: 550px;
+    background-color: #0d0d0f;
+    border-radius: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-image {
+    width: 100% !important;
+    max-height: 550px !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+
+.post-carousel-wrapper .carousel-img {
+    display: none !important;
+    width: 100% !important;
+    max-height: 550px !important;
+    object-fit: contain !important;
+}
+
+.post-carousel-wrapper .carousel-img.active {
+    display: block !important;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.carousel-btn.prev-btn { left: 10px; }
+.carousel-btn.next-btn { right: 10px; }
+
+.carousel-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.emoji-trigger-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.emoji-trigger-btn:hover {
+    transform: scale(1.1);
+}
+/* Minimalist Emoji Button & Picker Popup */
+.emoji-trigger-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.emoji-trigger-btn:hover {
+    color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.comment-action-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+}
+
+.comment-action-link:hover {
+    color: var(--text-main);
+    text-decoration: underline;
 }

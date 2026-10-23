@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search & Explore | Arts:Gallery</title>
+    <title>Search & Explore - Aeterna Artis</title>
     <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="AccountProfile.css">
@@ -156,6 +156,11 @@
             <!-- TAB 2: PROFILE CUSTOMIZATION -->
             <div id="tab-profile" class="discord-tab-pane">
                 <h3 class="discord-section-title">Profile Customization</h3>
+                
+                <div style="margin-top: 16px; margin-bottom: 20px;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Profile Banner Image URL</label>
+                    <input type="text" id="profileBannerInput" class="discord-input" placeholder="Paste image link for your banner...">
+                </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Display Name Font Style</label>
@@ -184,7 +189,6 @@
     </div>
 </div>
 
-<!-- INSTAGRAM-STYLE POST DETAIL / LIGHTBOX MODAL -->
 <div id="igPostDetailModal" class="ig-modal-overlay">
     <button type="button" class="ig-close-btn" onclick="closeIgModal()">&times;</button>
     <div class="ig-modal-container">
@@ -201,8 +205,10 @@
                     </button>
                     <span id="igModalLikesCount" style="font-size: 13px; font-weight: bold; color: var(--text-main);">0 likes</span>
                 </div>
-                <div class="comment-box-container" style="margin-top:0;">
+                <div class="comment-box-container" style="margin-top:0; position:relative;">
+                    
                     <input type="text" id="igModalCommentInput" placeholder="Add a comment...">
+                    <button type="button" class="emoji-trigger-btn fa-solid fa-face-smile" onclick="toggleEmojiPicker('igModalCommentInput')" title="Insert Emoji"></button>
                     <button type="button" id="igModalSubmitCommentBtn">Post</button>
                 </div>
             </div>
