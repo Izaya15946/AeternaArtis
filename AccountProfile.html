@@ -329,29 +329,48 @@
                 </div>
             </div>
 
-            <!-- TAB 2: PROFILE CUSTOMIZATION -->
-            <div id="tab-profile" class="discord-tab-pane">
-                <h3 class="discord-section-title">Profile Customization</h3>
-                    <div style="margin-top: 16px;">
-                        <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Profile Banner Image URL</label>
-                        <input type="text" id="profileBannerInput" class="discord-input" placeholder="Paste image link for your banner...">
+<!-- TAB 2: PROFILE CUSTOMIZATION -->
+    <div id="tab-profile" class="discord-tab-pane">
+        <h3 class="discord-section-title">Profile Customization</h3>
+        
+        <div style="margin-top: 16px; margin-bottom: 20px;">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Profile Banner Image</label>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Live Banner Preview Box -->
+                <div id="bannerPreviewBox" style="width: 100%; height: 100px; background: var(--input-bg); border: 1px dashed var(--border-color); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <img id="bannerPreviewImg" src="" alt="Banner Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div id="bannerPreviewPlaceholder" style="display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 12px; gap: 4px;">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 20px; color: var(--accent-color);"></i>
+                        <span>No banner image selected</span>
                     </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Display Name Font Style</label>
-                    <select id="profileFontSelect" class="discord-select">
-                        <option value="system-ui, sans-serif">Standard Modern (Default)</option>
-                        <option value="'Courier New', Courier, monospace">Monospace / Code</option>
-                        <option value="'Georgia', serif">Classic Serif</option>
-                        <option value="'Impact', Charcoal, sans-serif">Bold Impact</option>
-                        <option value="'Brush Script MT', cursive">Cursive / Handwritten</option>
-                    </select>
                 </div>
 
-                <div>
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">About Me / Bio</label>
-                    <textarea id="profileBioInput" class="discord-input" placeholder="Write something about yourself and your art..." style="min-height: 120px; resize: vertical;"></textarea>
-                </div>
+                <!-- Custom Upload Button -->
+                <label for="profileBannerFileInput" style="background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 9px 16px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; font-weight: 600; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='var(--border-color)'" onmouseout="this.style.background='var(--input-bg)'">
+                    <i class="fa-solid fa-image" style="color: var(--accent-color);"></i> Choose Banner Image
+                </label>
+                <input type="file" id="profileBannerFileInput" accept="image/*" hidden>
+                <input type="hidden" id="profileBannerInput">
             </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">Display Name Font Style</label>
+            <select id="profileFontSelect" class="discord-select">
+                <option value="system-ui, sans-serif">Standard Modern (Default)</option>
+                <option value="'Courier New', Courier, monospace">Monospace / Code</option>
+                <option value="'Georgia', serif">Classic Serif</option>
+                <option value="'Impact', Charcoal, sans-serif">Bold Impact</option>
+                <option value="'Brush Script MT', cursive">Cursive / Handwritten</option>
+            </select>
+        </div>
+
+        <div>
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-main);">About Me / Bio</label>
+            <textarea id="profileBioInput" class="discord-input" placeholder="Write something about yourself and your art..." style="min-height: 120px; resize: vertical;"></textarea>
+        </div>
+    </div>
 
         </div>
 
@@ -519,17 +538,34 @@
             }
         }
     });
-    let lastScrollTop = 0;
+let lastScrollTop = 0;
+let accumulatedDelta = 0;
 const bottomNavbar = document.querySelector('.navbar');
+const scrollThreshold = 40; // Increase this if you want it even less sensitive
 
 window.addEventListener('scroll', () => {
     if (window.innerWidth <= 768 && bottomNavbar) {
         let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScroll > lastScrollTop && currentScroll > 40) {
-            bottomNavbar.classList.add('nav-hidden');
-        } else {
+        let diff = currentScroll - lastScrollTop;
+
+        // Always show navbar when near the very top
+        if (currentScroll <= 20) {
             bottomNavbar.classList.remove('nav-hidden');
+            accumulatedDelta = 0;
+        } else if (diff > 0) {
+            // User is scrolling down
+            accumulatedDelta = Math.max(0, accumulatedDelta) + diff;
+            if (accumulatedDelta > scrollThreshold) {
+                bottomNavbar.classList.add('nav-hidden');
+            }
+        } else if (diff < 0) {
+            // User is scrolling up
+            accumulatedDelta = Math.min(0, accumulatedDelta) + diff;
+            if (accumulatedDelta < -scrollThreshold) {
+                bottomNavbar.classList.remove('nav-hidden');
+            }
         }
+
         lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     }
 });

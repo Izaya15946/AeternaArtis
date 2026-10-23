@@ -142,6 +142,15 @@ document.addEventListener("DOMContentLoaded", async function() {
       bannerInput.value = profileData.bannerUrl || "";
     }
 
+    // Pre-populate custom banner preview if banner URL already exists
+    const bannerPreviewImg = document.getElementById("bannerPreviewImg");
+    const bannerPreviewPlaceholder = document.getElementById("bannerPreviewPlaceholder");
+    if (profileData.bannerUrl && bannerPreviewImg && bannerPreviewPlaceholder) {
+      bannerPreviewImg.src = profileData.bannerUrl;
+      bannerPreviewImg.style.display = "block";
+      bannerPreviewPlaceholder.style.display = "none";
+    }
+
     const targetName = document.getElementById("targetProfileName");
     if (targetName) {
       targetName.textContent = profileData.fullname || "User";
@@ -197,6 +206,28 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
   }
 
+  // Live banner preview event listener
+  const bannerFileInput = document.getElementById("profileBannerFileInput");
+  const bannerPreviewImg = document.getElementById("bannerPreviewImg");
+  const bannerPreviewPlaceholder = document.getElementById("bannerPreviewPlaceholder");
+
+  if (bannerFileInput) {
+    bannerFileInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          if (bannerPreviewImg && bannerPreviewPlaceholder) {
+            bannerPreviewImg.src = event.target.result;
+            bannerPreviewImg.style.display = "block";
+            bannerPreviewPlaceholder.style.display = "none";
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
   const uploadBtn = document.getElementById("uploadBtn");
   const fileInput = document.getElementById("fileInput");
 
@@ -229,7 +260,7 @@ document.addEventListener("DOMContentLoaded", async function() {
       }
 
       const bioText = document.getElementById("profileBioInput").value.trim();
-      const bannerUrlVal = document.getElementById("profileBannerInput")?.value.trim() || "";
+      let bannerUrlVal = document.getElementById("profileBannerInput")?.value.trim() || currentUser.bannerUrl || "";
       const isArtistStatus = document.getElementById("artistToggleCheckbox").checked;
       const unblurNsfwStatus = document.getElementById("nsfwUnblurToggleCheckbox")?.checked || false;
       const hideHeroStatus = document.getElementById("hideHeroToggleCheckbox")?.checked || false;
@@ -239,6 +270,12 @@ document.addEventListener("DOMContentLoaded", async function() {
       saveProfileBtn.disabled = true;
 
       try {
+        // Upload new banner image to Google Drive if a new file was chosen
+        if (bannerFileInput && bannerFileInput.files.length > 0) {
+          saveProfileBtn.textContent = "Uploading Banner...";
+          bannerUrlVal = await uploadToDrive(bannerFileInput.files[0]);
+        }
+
         const userRef = doc(db, "users", currentUser.uid);
         await updateDoc(userRef, {
           bio: bioText,
@@ -290,7 +327,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         console.error("Error saving profile:", err);
         alert("Failed to save: " + err.message);
       } finally {
-        saveProfileBtn.textContent = "Save changes";
+        saveProfileBtn.textContent = "Save Changes";
         saveProfileBtn.disabled = false;
       }
     });

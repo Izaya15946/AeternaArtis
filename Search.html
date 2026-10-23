@@ -344,17 +344,34 @@
             });
         }
     });
-    let lastScrollTop = 0;
+let lastScrollTop = 0;
+let accumulatedDelta = 0;
 const bottomNavbar = document.querySelector('.navbar');
+const scrollThreshold = 40; // Increase this if you want it even less sensitive
 
 window.addEventListener('scroll', () => {
     if (window.innerWidth <= 768 && bottomNavbar) {
         let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScroll > lastScrollTop && currentScroll > 40) {
-            bottomNavbar.classList.add('nav-hidden');
-        } else {
+        let diff = currentScroll - lastScrollTop;
+
+        // Always show navbar when near the very top
+        if (currentScroll <= 20) {
             bottomNavbar.classList.remove('nav-hidden');
+            accumulatedDelta = 0;
+        } else if (diff > 0) {
+            // User is scrolling down
+            accumulatedDelta = Math.max(0, accumulatedDelta) + diff;
+            if (accumulatedDelta > scrollThreshold) {
+                bottomNavbar.classList.add('nav-hidden');
+            }
+        } else if (diff < 0) {
+            // User is scrolling up
+            accumulatedDelta = Math.min(0, accumulatedDelta) + diff;
+            if (accumulatedDelta < -scrollThreshold) {
+                bottomNavbar.classList.remove('nav-hidden');
+            }
         }
+
         lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     }
 });
