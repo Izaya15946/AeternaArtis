@@ -129,6 +129,33 @@ body, html {
     .hero-section {
         display: none;
     }
+
+    .content-box {
+        flex-direction: column;
+        justify-content: flex-start;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .container {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh;
+        padding: 40px 20px 140px 20px !important; /* Extra bottom padding for footer */
+        border-left: none !important;
+    }
+
+    .footer {
+        position: relative !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100%;
+        padding: 20px;
+        background-color: rgba(26, 26, 30, 0.95);
+        border-top: 1px solid #2a2a30;
+        z-index: 4;
+    }
 }
 
 .card-header {

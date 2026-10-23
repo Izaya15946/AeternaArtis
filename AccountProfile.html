@@ -33,7 +33,14 @@
     <script type="module" src="posts.js"></script>
 </head>
 <body>
+<!-- MOBILE TOP LOGO HEADER -->
+<div class="mobile-top-logo-bar">
+    <a href="Websitehtml.html" class="mobile-logo-link">
+        <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
+    </a>
+</div>
 
+<!-- FLOATING BOTTOM NAVBAR -->
 <div class="navbar">
     <a href="Websitehtml.html" class="logo-wrapper">
         <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="site-logo">
@@ -48,7 +55,7 @@
         <a href="Websitehtml.html" class="nav-icon-link" title="Home">
             <i class="fa-solid fa-house"></i>
         </a>
-        <a href="Search.html" class="nav-icon-link" title="Search & Explore">
+        <a href="Search.html" class="nav-icon-link" title="Explore">
             <i class="fa-solid fa-compass"></i>
         </a>
         <a href="AccountProfile.html" class="nav-icon-link active" title="Profile">
@@ -210,7 +217,14 @@
                 </div>
             </div>
         </div>
-
+<div class="mobile-filter-bar">
+    <button type="button" class="mobile-chip active" onclick="filterPosts('postType', 'All')">All</button>
+    <button type="button" class="mobile-chip" onclick="filterPosts('postType', 'Showcasing')">Showcasing</button>
+    <button type="button" class="mobile-chip" onclick="filterPosts('postType', 'Selling')">Selling</button>
+    <button type="button" class="mobile-chip" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
+    <button type="button" class="mobile-chip" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
+    <button type="button" class="mobile-chip" onclick="filterPosts('category', '3D Model')">3D Model</button>
+</div>
         <div id="feedContainer"></div>
     </div>
 
@@ -505,6 +519,20 @@
             }
         }
     });
+    let lastScrollTop = 0;
+const bottomNavbar = document.querySelector('.navbar');
+
+window.addEventListener('scroll', () => {
+    if (window.innerWidth <= 768 && bottomNavbar) {
+        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        if (currentScroll > lastScrollTop && currentScroll > 40) {
+            bottomNavbar.classList.add('nav-hidden');
+        } else {
+            bottomNavbar.classList.remove('nav-hidden');
+        }
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    }
+});
 </script>
 </body>
 </html>
