@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login | Aeterna Artis |</title>
+    <title>Aeterna Artis - Login</title>
     <link rel="shortcut icon" href="pics/logo/finishlogo2.0.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="stylesheet" href="Login.css">
+    <link rel="stylesheet" href="Auth.css">
 
     <!-- Firebase SDK Initialization -->
     <script type="module">
@@ -39,18 +39,18 @@
 <div class="overlay"></div>
 
 <div class="content-box">
-    <!-- Center Hero Section (Logo + Text) -->
+    <!-- Hero Section (Left side) -->
     <div class="hero-section">
         <img src="AeteraArtis2.png" alt="Aeterna Artis Logo" class="hero-logo">
-        <h1 class="hero-title">See What the Art Community is Creating Right Now</h1>
-        <p class="hero-subtitle">Log in to explore fresh masterpieces, follow trending creators, and save your favorites.</p>
+        <h1 class="hero-title" id="heroTitle">See What the Art Community is Creating Right Now</h1>
+        <p class="hero-subtitle" id="heroSubtitle">Log in to explore fresh masterpieces, follow trending creators, and save your favorites.</p>
     </div>
 
-    <!-- Right Login Container -->
-    <span class="container">
-      <div class="card-header">
-        <h2>LOGIN</h2>
-      </div>
+    <!-- Login View Container -->
+    <div class="container auth-view active" id="loginView">
+        <div class="card-header">
+            <h2>LOGIN</h2>
+        </div>
         <form id="loginForm">
             <div class="input-group">
                 <label for="email">Email</label>
@@ -65,45 +65,77 @@
                 <input class="button button-secondary" type="reset" value="Forgot?"/>
             </div>
             <hr>
-            <p class="signup-text">Need an account? <a href="Register.html">Sign up</a></p>
+            <p class="signup-text">Need an account? <a href="#" id="toRegisterLink">Sign up</a></p>
         </form>
+    </div>
 
-        <script type="module">
-          import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-          import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <!-- Register View Container -->
+    <div class="container auth-view" id="registerView" style="display: none;">
+        <div class="card-header">
+            <a href="#" class="back-link" id="toLoginLink"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
+            <h2>SIGN UP</h2>
+        </div>
+        
+        <form id="registerForm" name="form1">
+            <div class="input-group">
+                <label for="reg-fullname">Full Name</label>
+                <input type="text" id="reg-fullname" name="Fullname" placeholder="Enter Full Name" required>
+            </div>
 
-          document.getElementById("loginForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="birthday">Birthday</label>
+                    <input type="date" id="birthday" name="birthday" required>
+                </div>
 
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value;
+                <div class="input-group">
+                    <label for="reg-country">Country</label>
+                    <select id="reg-country" name="Country" class="select" required>
+                        <option value="" selected disabled>Select country</option>
+                        <option>Japan</option>
+                        <option>USA</option>
+                        <option>Philippines</option>
+                        <option>North Korea</option>
+                        <option>South Korea</option>
+                    </select>
+                </div>
+            </div>
 
-            try {
-              const userCredential = await signInWithEmailAndPassword(window.auth, email, password);
-              const user = userCredential.user;
+            <div class="input-group">
+                <label for="reg-uname">Email</label>
+                <input type="email" id="reg-uname" placeholder="Enter Email" name="uname" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="pass">Password</label>
+                    <input type="password" id="pass" placeholder="Password" name="psw" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="re-pass">Re-Password</label>
+                    <input type="password" id="re-pass" placeholder="Confirm Password" name="re-psw" required>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Gender</label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="gender" value="M" required/> Male</label>
+                    <label class="radio-label"><input type="radio" name="gender" value="F" required/> Female</label>
+                    <label class="radio-label"><input type="radio" name="gender" value="O" required/> Other</label>
+                </div>
+            </div>
 
-              const userDocRef = doc(window.db, "users", user.uid);
-              const userDocSnap = await getDoc(userDocRef);
+            <hr>
 
-              if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                userData.uid = user.uid;
-
-                localStorage.setItem("userEmail", email);
-                localStorage.setItem("userProfile", JSON.stringify(userData));
-
-                alert("Welcome " + userData.fullname + "!");
-                window.location.href = "Websitehtml.html";
-              } else {
-                alert("User profile record not found.");
-              }
-            } catch (error) {
-              console.error("Login error:", error);
-              alert("Login failed: " + error.message);
-            }
-          });
-        </script>
-    </span>
+            <p class="terms-text">By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
+            <div class="button-group">
+                <input class="button" type="submit" value="Sign up"/>
+                <input class="button button-secondary" type="reset" value="Reset"/>
+            </div>
+        </form>
+    </div>
 
     <span class="footer">
         <p>Follow me on:</p>
@@ -117,6 +149,107 @@
         <small>&copy; Copyright 2021, Art:Gallery Cooperation. This site is for my project only.</small>
     </span>
 </div>
+
+<!-- Firebase Auth Logic Module Script -->
+<script type="module">
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const loginView = document.getElementById("loginView");
+    const registerView = document.getElementById("registerView");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSubtitle = document.getElementById("heroSubtitle");
+
+    // View Switching
+    document.getElementById("toRegisterLink").addEventListener("click", function(e) {
+        e.preventDefault();
+        loginView.style.display = "none";
+        registerView.style.display = "flex";
+        heroTitle.textContent = "Join Aeterna Artis";
+        heroSubtitle.textContent = "Create an account to showcase, discover, and trade digital artwork.";
+    });
+
+    document.getElementById("toLoginLink").addEventListener("click", function(e) {
+        e.preventDefault();
+        registerView.style.display = "none";
+        loginView.style.display = "flex";
+        heroTitle.textContent = "See What the Art Community is Creating Right Now";
+        heroSubtitle.textContent = "Log in to explore fresh masterpieces, follow trending creators, and save your favorites.";
+    });
+
+    // Login Handler
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(window.auth, email, password);
+            const user = userCredential.user;
+
+            const userDocRef = doc(window.db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                userData.uid = user.uid;
+
+                localStorage.setItem("userEmail", email);
+                localStorage.setItem("userProfile", JSON.stringify(userData));
+
+                alert("Welcome " + userData.fullname + "!");
+                window.location.href = "Websitehtml.html";
+            } else {
+                alert("User profile record not found.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Login failed: " + error.message);
+        }
+    });
+
+    // Register Handler
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const pass = document.getElementById("pass").value;
+        const rePass = document.getElementById("re-pass").value;
+
+        if (pass !== rePass) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        const email = document.getElementById("reg-uname").value.trim();
+        const fullname = document.getElementById("reg-fullname").value.trim();
+        const birthday = document.getElementById("birthday").value;
+        const country = document.getElementById("reg-country").value;
+        const genderRadio = document.querySelector('input[name="gender"]:checked');
+        const gender = genderRadio ? genderRadio.value : "";
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(window.auth, email, pass);
+            const user = userCredential.user;
+
+            await setDoc(doc(window.db, "users", user.uid), {
+                fullname: fullname,
+                birthday: birthday,
+                country: country,
+                email: email,
+                gender: gender,
+                imageUrl: "",
+                createdAt: serverTimestamp()
+            });
+
+            alert("Registered successfully!");
+            location.reload();
+        } catch (error) {
+            console.error("Registration error:", error);
+            alert("Error: " + error.message);
+        }
+    });
+</script>
 
 </body>
 </html>
