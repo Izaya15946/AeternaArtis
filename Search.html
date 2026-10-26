@@ -74,24 +74,31 @@
         <i class="fa-solid fa-plus"></i>
     </button>
 </div>
-<div class="mobile-filter-bar" style="margin-top: 20px;">
-    <button type="button" class="mobile-chip active" onclick="filterPosts('postType', 'All')">All</button>
-    <button type="button" class="mobile-chip" onclick="filterPosts('postType', 'Showcasing')">Showcasing</button>
-    <button type="button" class="mobile-chip" onclick="filterPosts('postType', 'Selling')">Selling</button>
-    <button type="button" class="mobile-chip" onclick="filterPosts('category', 'Digital Art')">Digital Art</button>
-    <button type="button" class="mobile-chip" onclick="filterPosts('category', 'Traditional Art')">Traditional Art</button>
-    <button type="button" class="mobile-chip" onclick="filterPosts('category', '3D Model')">3D Model</button>
-</div>
+
 <div class="layout" style="margin-top: 30px;">
     <div style="width: 100%; max-width: 800px; margin: 0 auto;">
-        <div class="container-post" style="margin-bottom: 20px;">
-            <h2 style="color: var(--text-main); font-size: 22px; margin-bottom: 12px;">Search Results</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-                <input type="text" id="pageSearchQuery" class="search-page-input" placeholder="Search posts, captions, artists...">
+        
+        <!-- Search Bar with Autocomplete Wrapper -->
+        <div class="container-post" style="margin-bottom: 10px; position: relative;">
+            <div style="display: flex; gap: 10px;">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" id="pageSearchQuery" class="search-page-input" placeholder="Search posts, tags, or artists..." autocomplete="off" style="width: 100%;">
+                    <!-- Autocomplete Dropdown Box -->
+                    <div id="searchAutocompleteDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; z-index: 1000; max-height: 300px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5);"></div>
+                </div>
                 <button type="button" id="executeSearchBtn" class="btn-submit">Search</button>
             </div>
-            <p id="searchSummaryText" style="font-size: 13px; color: var(--text-muted);"></p>
         </div>
+
+        <!-- Twitter-Style Search Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+            <button type="button" class="search-tab-btn active" onclick="switchSearchTab('top', this)" style="flex: 1; background: none; border: none; padding: 12px; color: var(--text-main); font-weight: 600; cursor: pointer; border-bottom: 3px solid var(--accent-color);">Top</button>
+            <button type="button" class="search-tab-btn" onclick="switchSearchTab('latest', this)" style="flex: 1; background: none; border: none; padding: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent;">Latest</button>
+            <button type="button" class="search-tab-btn" onclick="switchSearchTab('people', this)" style="flex: 1; background: none; border: none; padding: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent;">People</button>
+            <button type="button" class="search-tab-btn" onclick="switchSearchTab('media', this)" style="flex: 1; background: none; border: none; padding: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent;">Media</button>
+        </div>
+
+        <p id="searchSummaryText" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;"></p>
 
         <div id="searchResultsContainer"></div>
         
@@ -347,7 +354,7 @@
 let lastScrollTop = 0;
 let accumulatedDelta = 0;
 const bottomNavbar = document.querySelector('.navbar');
-const scrollThreshold = 40; // Increase this if you want it even less sensitive
+const scrollThreshold = 1000; // Increase this if you want it even less sensitive
 
 window.addEventListener('scroll', () => {
     if (window.innerWidth <= 768 && bottomNavbar) {

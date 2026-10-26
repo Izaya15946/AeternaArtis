@@ -66,7 +66,10 @@ let globalPosts = [];
 let globalUsers = [];
 let activeFilters = { category: "All", postType: "All" };
 let currentActiveTab = "posts";
+let currentSearchTab = "top";
 let selectedPostFiles = [];
+let currentFollowListType = 'followers';
+let cachedFollowUsers = [];
 
 function formatFormattedText(text) {
   if (!text) return "";
@@ -215,17 +218,76 @@ document.addEventListener("DOMContentLoaded", async function() {
     });
   }
 
-  function resetModalFields() {
-    if (document.getElementById("modalContent")) document.getElementById("modalContent").value = "";
-    if (document.getElementById("modalContactLink")) document.getElementById("modalContactLink").value = "";
-    if (fileInput) fileInput.value = "";
-    selectedPostFiles = [];
-    if (previewContainer) {
-      previewContainer.innerHTML = "";
-      previewContainer.style.display = "none";
-    }
+  // Autocomplete Setup for Search Input
+  const searchInput = document.getElementById("pageSearchQuery");
+  const dropdown = document.getElementById("searchAutocompleteDropdown");
+
+  if (searchInput && dropdown) {
+    searchInput.addEventListener("input", function() {
+      const val = this.value.toLowerCase().trim();
+      if (!val) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      let matches = [];
+      globalPosts.forEach(p => {
+        if (p.content && p.content.toLowerCase().includes(val) && !matches.includes(p.content)) {
+          matches.push(p.content.substring(0, 40));
+        }
+      });
+
+      globalUsers.forEach(u => {
+        if (u.fullname && u.fullname.toLowerCase().includes(val)) {
+          matches.push(`Artist: ${u.fullname}`);
+        }
+      });
+
+      matches = matches.slice(0, 5);
+
+      if (matches.length === 0) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      dropdown.innerHTML = "";
+      matches.forEach(m => {
+        const item = document.createElement("div");
+        item.style.cssText = "padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 8px;";
+        item.innerHTML = `<i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); font-size: 11px;"></i> <span>${m}</span>`;
+        item.onmouseover = () => item.style.background = "var(--input-bg)";
+        item.onmouseout = () => item.style.background = "transparent";
+        item.onclick = () => {
+          searchInput.value = m.replace("Artist: ", "");
+          dropdown.style.display = "none";
+          window.location.href = `Search.html?q=${encodeURIComponent(searchInput.value)}`;
+        };
+        dropdown.appendChild(item);
+      });
+
+      dropdown.style.display = "block";
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = "none";
+      }
+    });
   }
 });
+
+function resetModalFields() {
+  if (document.getElementById("modalContent")) document.getElementById("modalContent").value = "";
+  if (document.getElementById("modalContactLink")) document.getElementById("modalContactLink").value = "";
+  const fileInput = document.getElementById("modalImageInput");
+  if (fileInput) fileInput.value = "";
+  selectedPostFiles = [];
+  const previewContainer = document.getElementById("imagePreviewContainer");
+  if (previewContainer) {
+    previewContainer.innerHTML = "";
+    previewContainer.style.display = "none";
+  }
+}
 
 function renderModalFilePreviews() {
   const previewContainer = document.getElementById("imagePreviewContainer");
@@ -434,9 +496,6 @@ function updateProfileHeaderCounts() {
   if (followersCountElem) followersCountElem.textContent = followersList.length;
 }
 
-let currentFollowListType = 'followers';
-let cachedFollowUsers = [];
-
 window.openFollowModal = async function(type) {
   currentFollowListType = type;
   const modal = document.getElementById("followListModal");
@@ -501,7 +560,7 @@ function renderFollowListHtml(users, container) {
     const uname = user.email.split("@")[0];
 
     const row = document.createElement("div");
-    row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 8px; border-radius:8px;";
+    row.style.cssText = "display:flex; align-items:center; justify-space-between; gap:10px; padding:6px 8px; border-radius:8px;";
     row.onmouseover = () => row.style.background = "var(--input-bg)";
     row.onmouseout = () => row.style.background = "transparent";
 
@@ -643,18 +702,65 @@ window.toggleFollowUser = async function(targetEmail) {
   }
 };
 
+window.switchSearchTab = function(tabName, btnElem) {
+  currentSearchTab = tabName;
+  document.querySelectorAll('.search-tab-btn').forEach(btn => {
+    btn.style.color = 'var(--text-muted)';
+    btn.style.borderBottomColor = 'transparent';
+  });
+  btnElem.style.color = 'var(--text-main)';
+  btnElem.style.borderBottomColor = 'var(--accent-color)';
+
+  const urlParams = new URLSearchParams(window.location.search);
+  renderSearchResults(urlParams.get('q') || '');
+};
+
 function renderSearchResults(queryStr) {
   const container = document.getElementById("searchResultsContainer");
   const summary = document.getElementById("searchSummaryText");
   if (!container) return;
 
   const q = queryStr.toLowerCase().trim();
-  const matched = globalPosts.filter(p => {
+  let matched = globalPosts.filter(p => {
     return (p.content && p.content.toLowerCase().includes(q)) ||
            (p.fullname && p.fullname.toLowerCase().includes(q)) ||
            (p.category && p.category.toLowerCase().includes(q)) ||
            (p.postType && p.postType.toLowerCase().includes(q));
   });
+
+  if (currentSearchTab === 'latest') {
+    matched.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  } else if (currentSearchTab === 'media') {
+    matched = matched.filter(p => (p.postImageUrls && p.postImageUrls.length > 0) || p.postImageUrl);
+  } else if (currentSearchTab === 'people') {
+    const userMatches = globalUsers.filter(u => u.fullname && u.fullname.toLowerCase().includes(q));
+    container.innerHTML = "";
+    if (userMatches.length === 0) {
+      container.innerHTML = "<p style='color: gray; text-align: center; margin-top: 20px;'>No artists found.</p>";
+      if (summary) summary.textContent = `Found 0 people matching "${queryStr}"`;
+      return;
+    }
+    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    userMatches.forEach(u => {
+      const uname = u.email ? u.email.split("@")[0] : "user";
+      html += `
+        <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-container); padding:12px 16px; border-radius:10px; border:1px solid var(--border-color);">
+          <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="window.location.href='UserProfile.html?email=${encodeURIComponent(u.email)}'">
+            <img src="${u.imageUrl || 'Profile-Placeholder.png'}" style="width:44px; height:44px; border-radius:50%; object-fit:cover;">
+            <div>
+              <h4 style="margin:0; font-size:14px; color:var(--text-main);">${u.fullname}</h4>
+              <span style="font-size:12px; color:var(--text-muted);">@${uname}</span>
+            </div>
+          </div>
+          <button type="button" class="follow-btn" onclick="window.location.href='UserProfile.html?email=${encodeURIComponent(u.email)}'">View Profile</button>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+    if (summary) summary.textContent = `Found ${userMatches.length} people matching "${queryStr}"`;
+    return;
+  }
 
   if (summary) summary.textContent = `Found ${matched.length} post(s) matching "${queryStr}"`;
   renderFeedInContainer(matched, container);
@@ -850,13 +956,14 @@ function renderFeedInContainer(posts, container) {
       ${mediaContainerHtml}
       ${actionBtn}
       
-      <div class="post-actions-bar" style="display:flex; gap:16px; margin-top:12px; align-items:center;">
-        <button type="button" onclick="toggleLike('${post.postId}')" class="like-btn ${isLiked ? 'liked' : ''}" style="background:none; border:none; cursor:pointer; font-size:16px; color: ${heartColor}; padding:0; display:flex; align-items:center; gap:6px;">
-          <i class="${heartIconClass}" style="font-size:20px;"></i>
-          <span style="font-size:13px; font-weight:600;">${likesCount}</span>
+      <div class="post-actions-bar" style="display:flex; gap:20px; margin-top:14px; align-items:center;">
+        <button type="button" onclick="toggleLike('${post.postId}')" class="like-btn ${isLiked ? 'liked' : ''}" style="background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:4px 0; color: ${heartColor};">
+          <i class="${heartIconClass}" style="font-size: 22px;"></i>
+          <span style="font-size: 14px; font-weight: 600;">${likesCount}</span>
         </button>
-        <button type="button" onclick="openIgModal('${post.postId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; display:flex; align-items:center; gap:6px;">
-          <i class="fa-regular fa-comment" style="font-size:20px;"></i> <span style="font-size:13px; font-weight:600;">${commentsCount}</span>
+        <button type="button" onclick="openIgModal('${post.postId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:8px; padding:4px 0;">
+          <i class="fa-regular fa-comment" style="font-size: 22px;"></i> 
+          <span style="font-size: 14px; font-weight: 600;">${commentsCount}</span>
         </button>
       </div>
     `;
@@ -1031,7 +1138,7 @@ window.toggleLike = async function(postId) {
 
     refreshCurrentView();
     const igModal = document.getElementById("igPostDetailModal");
-    if (igModal && igModal.style.display === "flex") {
+    if (igModal && (igModal.style.display === "flex" || igModal.classList.contains("active"))) {
       openIgModal(postId);
     }
   } catch (err) {
@@ -1174,7 +1281,7 @@ window.openIgModal = function(postId) {
 
   if (likeBtn) {
     likeBtn.className = `like-btn ${isLiked ? 'liked' : ''}`;
-    likeBtn.innerHTML = `<i class="${modalHeartClass}" style="font-size: 20px; color: ${modalHeartColor}; cursor: pointer;"></i>`;
+    likeBtn.innerHTML = `<i class="${modalHeartClass}" style="font-size: 22px; color: ${modalHeartColor}; cursor: pointer;"></i>`;
     likeBtn.onclick = async () => {
       await toggleLike(postId);
     };
@@ -1229,7 +1336,11 @@ window.openIgModal = function(postId) {
     };
   }
 
+  modal.classList.remove("closing");
   modal.style.display = "flex";
+  void modal.offsetWidth; // Force reflow to trigger mobile slide-up transition
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
 };
 
 window.openTargetFollowModal = async function(type) {
@@ -1265,5 +1376,14 @@ window.openTargetFollowModal = async function(type) {
 
 window.closeIgModal = function() {
   const modal = document.getElementById("igPostDetailModal");
-  if (modal) modal.style.display = "none";
+  if (!modal) return;
+
+  modal.classList.add("closing");
+  modal.classList.remove("active");
+
+  setTimeout(() => {
+    modal.style.display = "none";
+    modal.classList.remove("closing");
+    document.body.style.overflow = "auto";
+  }, 350);
 };
